@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRUD Study Visual App</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <!--
+      This file is the visual frontend.
+      It does not store tasks itself. It talks to the backend REST API using fetch().
+    -->
+    <main class="app-shell">
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">CRUD Study</p>
+            <h1>Tasks REST API Dashboard</h1>
+          </div>
+          <nav class="top-actions" aria-label="Study links">
+            <a class="docs-link" href="/api/tasks" target="_blank">View raw JSON</a>
+            <a class="docs-link" href="#study-guide">Study guide</a>
+          </nav>
+        </header>
+
+        <section class="flow-panel" aria-label="Request flow">
+          <div class="flow-step active" data-flow-step="frontend">
+            <span>1</span>
+            <strong>Frontend</strong>
+            <small>Button or form event</small>
+          </div>
+          <div class="flow-arrow">-></div>
+          <div class="flow-step" data-flow-step="route">
+            <span>2</span>
+            <strong>Route</strong>
+            <small>/api/tasks</small>
+          </div>
+          <div class="flow-arrow">-></div>
+          <div class="flow-step" data-flow-step="controller">
+            <span>3</span>
+            <strong>Controller</strong>
+            <small>request logic</small>
+          </div>
+          <div class="flow-arrow">-></div>
+          <div class="flow-step" data-flow-step="repository">
+            <span>4</span>
+            <strong>Repository</strong>
+            <small>JSON file</small>
+          </div>
+        </section>
+
+        <section class="content-grid">
+          <form id="task-form" class="editor" autocomplete="off">
+            <div class="section-title">
+              <h2 id="form-title">Create task</h2>
+              <button class="icon-button hidden" id="cancel-edit" type="button" aria-label="Cancel edit" title="Cancel edit">
+                x
+              </button>
+            </div>
+
+            <input type="hidden" id="task-id" />
+
+            <label for="title">Title</label>
+            <input id="title" name="title" placeholder="Study Express routes" required />
+
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4" placeholder="Write what this task is about"></textarea>
+
+            <label class="checkbox-row">
+              <input id="completed" name="completed" type="checkbox" />
+              <span>Completed</span>
+            </label>
+
+            <button class="primary-action" type="submit">Create task</button>
+          </form>
+
+          <section class="tasks-panel">
+            <div class="section-title">
+              <div>
+                <h2>Tasks</h2>
+                <p id="task-count">0 tasks</p>
+              </div>
+              <button id="refresh" class="icon-button" type="button" aria-label="Refresh tasks" title="Refresh tasks">↻</button>
+            </div>
+
+            <div class="filters" aria-label="Task filters">
+              <button class="filter-button active" type="button" data-filter="all">All</button>
+              <button class="filter-button" type="button" data-filter="false">Open</button>
+              <button class="filter-button" type="button" data-filter="true">Done</button>
+            </div>
+
+            <div id="status-message" class="status-message" role="status"></div>
+            <ul id="task-list" class="task-list"></ul>
+          </section>
+        </section>
+
+        <section class="request-log">
+          <div class="section-title">
+            <h2>Last API call</h2>
+            <span id="last-method">GET</span>
+          </div>
+          <pre id="last-call">The frontend will show each request here after you use the app.</pre>
+        </section>
+
+        <section id="study-guide" class="study-layout" aria-label="Frontend learning guide">
+          <article class="study-panel wide">
+            <div class="section-title">
+              <div>
+                <h2>Project structure</h2>
+                <p>Read from top to bottom to see what depends on what.</p>
+              </div>
+            </div>
+            <pre>public/app.js
+  -> calls /api/tasks with fetch()
+
+src/app.js
+  -> receives /api/tasks
+  -> sends it to src/routes/taskRoutes.js
+
+src/routes/taskRoutes.js
+  -> chooses the controller function
+
+src/controllers/taskController.js
+  -> reads req
+  -> calls validator/repository
+  -> sends res
+
+src/repositories/taskRepository.js
+  -> reads and writes data/tasks.json</pre>
+          </article>
+
+          <article class="study-panel">
+            <div class="section-title">
+              <div>
+                <h2>How to study this screen</h2>
+                <p>Click something, then read the matching code path.</p>
+              </div>
+            </div>
+            <ol class="study-steps">
+              <li>Use the form to create a task.</li>
+              <li>Watch "Last API call" change.</li>
+              <li>Open <code>public/app.js</code> and find the function shown below.</li>
+              <li>Follow the request into <code>src/routes/taskRoutes.js</code>.</li>
+              <li>Read the matching controller in <code>src/controllers/taskController.js</code>.</li>
+              <li>Finish at <code>src/repositories/taskRepository.js</code>.</li>
+            </ol>
+          </article>
+
+          <article class="study-panel">
+            <div class="section-title">
+              <div>
+                <h2>Current code path</h2>
+                <p id="current-action">Initial page load reads tasks.</p>
+              </div>
+            </div>
+            <pre id="code-path">public/app.js: loadTasks()
+  -> fetch("GET", "/api/tasks")
+  -> src/routes/taskRoutes.js: router.get("/", listTasks)
+  -> src/controllers/taskController.js: listTasks()
+  -> src/repositories/taskRepository.js: findAll()
+  -> data/tasks.json</pre>
+          </article>
+
+          <article class="study-panel">
+            <div class="section-title">
+              <div>
+                <h2>Frontend state</h2>
+                <p>This is what the browser remembers while the page is open.</p>
+              </div>
+            </div>
+            <pre id="state-viewer">{}</pre>
+          </article>
+
+          <article class="study-panel">
+            <div class="section-title">
+              <div>
+                <h2>Endpoint map</h2>
+                <p>Each UI action calls one REST endpoint.</p>
+              </div>
+            </div>
+            <div class="endpoint-list">
+              <button class="endpoint-card" type="button" data-endpoint="list">
+                <strong>Read all</strong>
+                <span>GET /api/tasks</span>
+              </button>
+              <button class="endpoint-card" type="button" data-endpoint="create">
+                <strong>Create</strong>
+                <span>POST /api/tasks</span>
+              </button>
+              <button class="endpoint-card" type="button" data-endpoint="update">
+                <strong>Update</strong>
+                <span>PUT /api/tasks/:id</span>
+              </button>
+              <button class="endpoint-card" type="button" data-endpoint="delete">
+                <strong>Delete</strong>
+                <span>DELETE /api/tasks/:id</span>
+              </button>
+            </div>
+          </article>
+
+          <article class="study-panel wide">
+            <div class="section-title">
+              <div>
+                <h2>Selected endpoint lesson</h2>
+                <p>Click an endpoint above or use the app to update this lesson.</p>
+              </div>
+            </div>
+            <pre id="endpoint-lesson">GET /api/tasks
+
+Frontend:
+  public/app.js -> loadTasks()
+
+Backend:
+  src/routes/taskRoutes.js -> router.get("/", listTasks)
+  src/controllers/taskController.js -> listTasks()
+  src/repositories/taskRepository.js -> findAll()
+
+Meaning:
+  Read every saved task from data/tasks.json and return JSON to the browser.</pre>
+          </article>
+
+          <article class="study-panel wide">
+            <div class="section-title">
+              <div>
+                <h2>Frontend vocabulary</h2>
+                <p>Small words that appear everywhere in browser code.</p>
+              </div>
+            </div>
+            <dl class="glossary">
+              <div>
+                <dt>DOM</dt>
+                <dd>The page tree that JavaScript can read and change.</dd>
+              </div>
+              <div>
+                <dt>Event listener</dt>
+                <dd>A function that runs after a click, submit, or other browser event.</dd>
+              </div>
+              <div>
+                <dt>fetch()</dt>
+                <dd>The browser function used to call the REST API.</dd>
+              </div>
+              <div>
+                <dt>State</dt>
+                <dd>Values the frontend keeps in memory, like the task list and active filter.</dd>
+              </div>
+              <div>
+                <dt>Render</dt>
+                <dd>Turning JavaScript data into visible HTML on the page.</dd>
+              </div>
+            </dl>
+          </article>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
