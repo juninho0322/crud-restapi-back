@@ -36,6 +36,10 @@ app.get("/health", async (req, res, next) => {
         return next(error);
     }
 });
+// Browsers often request /favicon.ico automatically. Returning 204 avoids a noisy study-time 404.
+app.get("/favicon.ico", (req, res) => {
+    res.status(204).end();
+});
 // Any request that starts with /api/tasks is sent to taskRoutes.
 app.use("/api/tasks", taskRoutes);
 // React client routes should return the built index.html.

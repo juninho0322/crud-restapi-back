@@ -45,6 +45,11 @@ app.get("/health", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
+// Browsers often request /favicon.ico automatically. Returning 204 avoids a noisy study-time 404.
+app.get("/favicon.ico", (req: Request, res: Response) => {
+  res.status(204).end();
+});
+
 // Any request that starts with /api/tasks is sent to taskRoutes.
 app.use("/api/tasks", taskRoutes);
 
