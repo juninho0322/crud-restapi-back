@@ -12,13 +12,13 @@ In this project, both are served by Express, but they still have different jobs.
 
 ```text
 Browser
-  public/index.html
-  public/styles.css
-  public/app.js
+  src/client/index.html
+  src/client/src/styles-app.css
+  src/client/src/App.tsx
 
 Server
-  src/server.js
-  src/app.js
+  src/server.ts
+  src/app.ts
   src/routes/
   src/controllers/
   src/validators/
@@ -31,19 +31,19 @@ Server
 Dependencies should point inward and downward.
 
 ```text
-public/app.js
+src/client/src/App.tsx
   calls HTTP endpoint
 
-src/routes/taskRoutes.js
+src/routes/taskRoutes.ts
   calls controller functions
 
-src/controllers/taskController.js
+src/controllers/taskController.ts
   calls validators and repositories
 
-src/validators/taskValidator.js
+src/validators/taskValidator.ts
   checks request body
 
-src/repositories/taskRepository.js
+src/repositories/taskRepository.ts
   reads and writes data/tasks.json locally
   uses Postgres on Vercel when DATABASE_URL or POSTGRES_URL exists
   uses temporary memory on Vercel if no database URL exists
@@ -61,60 +61,60 @@ Each layer has one job.
 
 ```text
 Crud-study/
-  public/
+  src/client/
     index.html
     styles.css
-    app.js
+    App.tsx
 
   src/
-    server.js
-    app.js
+    server.ts
+    App.tsx
 
     routes/
-      taskRoutes.js
+      taskRoutes.ts
 
     controllers/
-      taskController.js
+      taskController.ts
 
     validators/
-      taskValidator.js
+      taskValidator.ts
 
     repositories/
-      taskRepository.js
+      taskRepository.ts
 
     middleware/
-      notFoundHandler.js
-      errorHandler.js
+      notFoundHandler.ts
+      errorHandler.ts
 
   data/
     tasks.json
 
   tests/
-    tasks.test.js
+    tasks.test.ts
 ```
 
 ## What Talks To What
 
 ```text
-public/index.html
-  is controlled by public/app.js
+src/client/index.html
+  is controlled by src/client/src/App.tsx
 
-public/app.js
+src/client/src/App.tsx
   calls /api/tasks using fetch()
 
-src/app.js
+src/app.ts
   receives /api/tasks and forwards it to taskRoutes
 
-src/routes/taskRoutes.js
+src/routes/taskRoutes.ts
   matches method + URL and calls the correct controller
 
-src/controllers/taskController.js
+src/controllers/taskController.ts
   reads req, validates input, calls repository, sends res
 
-src/validators/taskValidator.js
+src/validators/taskValidator.ts
   checks if req.body is valid
 
-src/repositories/taskRepository.js
+src/repositories/taskRepository.ts
   loads and saves tasks in data/tasks.json locally or Postgres on Vercel
 
 data/tasks.json
@@ -126,26 +126,26 @@ data/tasks.json
 You submit the form in the browser.
 
 ```text
-1. public/app.js
+1. src/client/src/App.tsx
    saveTask() creates this payload:
    { title, description }
 
-2. public/app.js
+2. src/client/src/App.tsx
    apiRequest("POST", "/api/tasks", payload)
 
-3. src/app.js
+3. src/app.ts
    sees /api/tasks and sends request to taskRoutes
 
-4. src/routes/taskRoutes.js
+4. src/routes/taskRoutes.ts
    router.post("/", createTask)
 
-5. src/controllers/taskController.js
+5. src/controllers/taskController.ts
    createTask(req, res, next)
 
-6. src/validators/taskValidator.js
+6. src/validators/taskValidator.ts
    validateCreateTask(req.body)
 
-7. src/repositories/taskRepository.js
+7. src/repositories/taskRepository.ts
    create(req.body)
 
 8. data/tasks.json
@@ -262,10 +262,10 @@ Delete
 1. Open the app at `http://localhost:3000`.
 2. Create one task.
 3. Look at the "Last API call" panel.
-4. Open `public/app.js` and find the function named in the panel.
-5. Open `src/routes/taskRoutes.js` and find the matching HTTP method.
-6. Open `src/controllers/taskController.js` and read the matching controller.
-7. Open `src/repositories/taskRepository.js` and find the matching data function.
+4. Open `src/client/src/App.tsx` and find the function named in the panel.
+5. Open `src/routes/taskRoutes.ts` and find the matching HTTP method.
+6. Open `src/controllers/taskController.ts` and read the matching controller.
+7. Open `src/repositories/taskRepository.ts` and find the matching data function.
 8. Open `data/tasks.json` and see the saved result.
 
 This is the full loop: browser event to saved data.

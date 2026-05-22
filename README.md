@@ -1,6 +1,6 @@
 # CRUD Study REST API
 
-Small backend project for studying CRUD with Node.js and Express.
+Small full-stack study project for learning CRUD with React, TypeScript, Node.js, Express, REST APIs, and Supabase/Postgres.
 
 The API manages `tasks` and stores them in a local JSON file at `data/tasks.json`.
 
@@ -13,11 +13,11 @@ Start here:
 3. Read [docs/BACKEND_FOR_FRONTEND_DEVS.md](docs/BACKEND_FOR_FRONTEND_DEVS.md) if you know frontend and are learning backend.
 4. Read [docs/FRONTEND_GUIDE.md](docs/FRONTEND_GUIDE.md) for the browser side.
 5. Read [docs/VERCEL_DEPLOY.md](docs/VERCEL_DEPLOY.md) for deployment.
-6. Open `src/app.js` to see how the API is assembled.
-7. Open `public/app.js` to see how the frontend calls the API.
-8. Open `src/routes/taskRoutes.js` to see which URL talks to which controller.
-9. Open `src/controllers/taskController.js` to see the CRUD logic.
-10. Open `src/repositories/taskRepository.js` to see how data is saved.
+6. Open `src/app.ts` to see how the API is assembled.
+7. Open `src/client/src/App.tsx` to see how the frontend calls the API.
+8. Open `src/routes/taskRoutes.ts` to see which URL talks to which controller.
+9. Open `src/controllers/taskController.ts` to see the CRUD logic.
+10. Open `src/repositories/taskRepository.ts` to see how data is saved.
 
 The source files include comments explaining what each part does and how the files talk to each other.
 
@@ -105,15 +105,15 @@ curl -X POST http://localhost:3000/api/tasks \
 ## Project structure
 
 ```text
-public/
-  index.html             Visual page structure
-  styles.css             Visual styling
-  app.js                 Browser JavaScript that calls the API
+src/client/
+  index.html             React HTML entry
+  src/App.tsx            React dashboard and API calls
+  src/components/        React study and diagram components
 api/
-  index.js               Vercel serverless function entry point
+  index.ts               Vercel serverless function entry point
 src/
-  app.js                 Express app setup
-  server.js              Starts the HTTP server
+  app.ts                 Express app setup
+  server.ts              Starts the HTTP server locally
   controllers/           Request and response logic
   middleware/            Error and not-found handlers
   repositories/          Data access layer
@@ -122,7 +122,7 @@ src/
 data/
   tasks.json             Local JSON database for study
 tests/
-  tasks.test.js          API tests
+  tasks.test.ts          API tests
 ```
 
 ## Dependency direction
@@ -130,15 +130,15 @@ tests/
 Read this from top to bottom:
 
 ```text
-public/app.js
+src/client/src/App.tsx
   -> HTTP request to /api/tasks
-src/app.js
+src/app.ts
   -> mounts task routes at /api/tasks
-src/routes/taskRoutes.js
+src/routes/taskRoutes.ts
   -> calls task controller functions
-src/controllers/taskController.js
+src/controllers/taskController.ts
   -> calls validators and repositories
-src/repositories/taskRepository.js
+src/repositories/taskRepository.ts
   -> reads/writes data/tasks.json locally
   -> uses Postgres on Vercel when DATABASE_URL or POSTGRES_URL exists
 ```

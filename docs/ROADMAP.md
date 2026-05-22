@@ -8,21 +8,21 @@ When a client sends a request, the flow is:
 
 ```text
 Client
-  -> src/server.js
-  -> src/app.js
-  -> public/index.html
-  -> public/app.js
-  -> src/routes/taskRoutes.js
-  -> src/controllers/taskController.js
-  -> src/validators/taskValidator.js
-  -> src/repositories/taskRepository.js
+  -> src/server.ts
+  -> src/app.ts
+  -> src/client/index.html
+  -> src/client/src/App.tsx
+  -> src/routes/taskRoutes.ts
+  -> src/controllers/taskController.ts
+  -> src/validators/taskValidator.ts
+  -> src/repositories/taskRepository.ts
   -> data/tasks.json
   -> response back to Client
 ```
 
 The client can be a browser, Postman, curl, a frontend app, or tests.
 
-In this project, the browser frontend lives in `public/`.
+In this project, the browser frontend lives in `src/client/`.
 
 For a step-by-step study plan, start with `docs/STUDY_PLAN.md`.
 
@@ -37,39 +37,39 @@ For deployment, read `docs/VERCEL_DEPLOY.md`.
 The project is split by responsibility. This makes it easier to learn what depends on what.
 
 ```text
-public/
+src/client/
   index.html             What the browser displays
   styles.css             How the browser page looks
-  app.js                 Browser behavior and fetch() calls
+  App.tsx                 Browser behavior and fetch() calls
 
 src/
-  server.js              Opens the HTTP port
-  app.js                 Creates the Express app
+  server.ts              Opens the HTTP port
+  App.tsx                 Creates the Express app
 
   routes/
-    taskRoutes.js        Maps URL + HTTP method to controller
+    taskRoutes.ts        Maps URL + HTTP method to controller
 
   controllers/
-    taskController.js    Handles request/response logic
+    taskController.ts    Handles request/response logic
 
   validators/
-    taskValidator.js     Checks incoming data
+    taskValidator.ts     Checks incoming data
 
   repositories/
-    taskRepository.js    Reads and writes task data
+    taskRepository.ts    Reads and writes task data
 
   middleware/
-    notFoundHandler.js   Handles unknown routes
-    errorHandler.js      Handles unexpected errors
+    notFoundHandler.ts   Handles unknown routes
+    errorHandler.ts      Handles unexpected errors
 
 data/
   tasks.json             Local JSON storage
 
 api/
-  index.js               Vercel function entry point
+  index.ts               Vercel function entry point
 
 tests/
-  tasks.test.js          Automated API checks
+  tasks.test.ts          Automated API checks
 ```
 
 The dependency direction is:
@@ -84,25 +84,25 @@ Browser UI
   -> data file locally or Postgres on Vercel
 ```
 
-Files should not depend backward. For example, `taskRepository.js` should not import `taskController.js`.
+Files should not depend backward. For example, `taskRepository.ts` should not import `taskController.ts`.
 
 ## Who Talks To What
 
 ```text
-public/app.js
-  talks to src/app.js through HTTP requests
+src/client/src/App.tsx
+  talks to src/app.ts through HTTP requests
 
-src/app.js
-  talks to src/routes/taskRoutes.js by mounting the router
+src/app.ts
+  talks to src/routes/taskRoutes.ts by mounting the router
 
-src/routes/taskRoutes.js
-  talks to src/controllers/taskController.js by calling controller functions
+src/routes/taskRoutes.ts
+  talks to src/controllers/taskController.ts by calling controller functions
 
-src/controllers/taskController.js
-  talks to src/validators/taskValidator.js for input checks
-  talks to src/repositories/taskRepository.js for data
+src/controllers/taskController.ts
+  talks to src/validators/taskValidator.ts for input checks
+  talks to src/repositories/taskRepository.ts for data
 
-src/repositories/taskRepository.js
+src/repositories/taskRepository.ts
   talks to data/tasks.json using the filesystem
 ```
 
@@ -122,13 +122,13 @@ npm test
 
 `npm run dev` uses `nodemon`, which restarts the server when files change.
 
-### `src/server.js`
+### `src/server.ts`
 
 Starts the HTTP server.
 
 This file asks Express to listen on a port. It does not define routes directly. Its job is only to start the app.
 
-### `src/app.js`
+### `src/app.ts`
 
 Builds the Express application.
 
@@ -154,29 +154,29 @@ It also serves the frontend:
 app.use(express.static(publicDirectory));
 ```
 
-That means `public/index.html`, `public/styles.css`, and `public/app.js` are available in the browser.
+That means `src/client/index.html`, `src/client/src/styles-app.css`, and `src/client/src/App.tsx` are available in the browser.
 
-### `public/index.html`
+### `src/client/index.html`
 
 Defines the visible page structure: form, task list, filters, and request log.
 
 HTML answers the question: "What elements exist on the page?"
 
-### `public/styles.css`
+### `src/client/src/styles-app.css`
 
 Controls the visual design: layout, colors, spacing, buttons, and responsive behavior.
 
 CSS answers the question: "What should the page look like?"
 
-### `public/app.js`
+### `src/client/src/App.tsx`
 
 Controls browser behavior.
 
 It listens for form submits and button clicks. Then it uses `fetch()` to call the backend API.
 
-JavaScript answers the question: "What should happen when the user interacts?"
+React + TypeScript answers the question: "What should happen when the user interacts?"
 
-### `src/routes/taskRoutes.js`
+### `src/routes/taskRoutes.ts`
 
 Maps HTTP methods and URLs to controller functions.
 
@@ -190,7 +190,7 @@ DELETE /api/tasks/:id  -> deleteTask
 
 Routes should stay small. They decide where the request goes next.
 
-### `src/controllers/taskController.js`
+### `src/controllers/taskController.ts`
 
 Handles request and response logic.
 
@@ -212,13 +212,13 @@ res.status(204).send()
 
 Controllers talk to validators and repositories.
 
-### `src/validators/taskValidator.js`
+### `src/validators/taskValidator.ts`
 
 Checks whether incoming data is valid before saving it.
 
 For example, a task must have a non-empty title. This avoids storing broken data.
 
-### `src/repositories/taskRepository.js`
+### `src/repositories/taskRepository.ts`
 
 Handles data storage.
 
@@ -234,11 +234,11 @@ The rest of the app does not need to know if tasks are stored in JSON, PostgreSQ
 
 Middleware functions run during the request lifecycle.
 
-`notFoundHandler.js` handles unknown routes.
+`notFoundHandler.ts` handles unknown routes.
 
-`errorHandler.js` handles unexpected server errors.
+`errorHandler.ts` handles unexpected server errors.
 
-### `tests/tasks.test.js`
+### `tests/tasks.test.ts`
 
 Tests the API automatically.
 
@@ -366,13 +366,13 @@ frontend delete button -> fetch DELETE -> route -> deleteTask controller -> repo
 
 ## Study Path
 
-1. Start with `src/server.js`.
-2. Move to `src/app.js` and understand middleware.
-3. Open `public/index.html` and find the form and task list.
-4. Open `public/app.js` and find `apiRequest()`.
-5. Read `src/routes/taskRoutes.js` and memorize route mapping.
-6. Read one controller function at a time in `src/controllers/taskController.js`.
-7. Follow each controller into `src/repositories/taskRepository.js`.
+1. Start with `src/server.ts`.
+2. Move to `src/app.ts` and understand middleware.
+3. Open `src/client/index.html` and find the form and task list.
+4. Open `src/client/src/App.tsx` and find `apiRequest()`.
+5. Read `src/routes/taskRoutes.ts` and memorize route mapping.
+6. Read one controller function at a time in `src/controllers/taskController.ts`.
+7. Follow each controller into `src/repositories/taskRepository.ts`.
 8. Run each endpoint with the visual frontend, curl, or Postman.
 9. Change one small thing and run `npm test`.
 10. Add a second resource, like `users`, using the same pattern.
@@ -392,7 +392,7 @@ Think of the layers like this:
 ```text
 HTML says: "What can the user see?"
 CSS says: "How should it look?"
-Frontend JavaScript says: "What happens when the user clicks?"
+Frontend React + TypeScript says: "What happens when the user clicks?"
 Routes say: "Which controller should handle this URL?"
 Controllers say: "What should happen for this request?"
 Validators say: "Is this input allowed?"

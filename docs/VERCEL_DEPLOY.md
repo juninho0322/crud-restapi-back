@@ -5,13 +5,13 @@ This project can deploy to Vercel.
 Locally, it uses:
 
 ```text
-public/app.js -> Express API -> data/tasks.json
+src/client/src/App.tsx -> Express API -> data/tasks.json
 ```
 
 On Vercel, use:
 
 ```text
-public/app.js -> Vercel Function -> Express API -> Postgres database
+src/client/src/App.tsx -> Vercel Function -> Express API -> Postgres database
 ```
 
 ## Why The Storage Changes
@@ -38,7 +38,7 @@ Temporary memory storage lets the app run, but data can disappear when the serve
 ## Files Added For Vercel
 
 ```text
-api/index.js
+api/index.ts
   Vercel serverless function entry point
 
 vercel.json
@@ -71,13 +71,13 @@ POSTGRES_URL
 
 ```text
 Browser
-  -> public/app.js
+  -> src/client/src/App.tsx
   -> fetch("/api/tasks")
-  -> api/index.js
-  -> src/app.js
-  -> src/routes/taskRoutes.js
-  -> src/controllers/taskController.js
-  -> src/repositories/taskRepository.js
+  -> api/index.ts
+  -> src/app.ts
+  -> src/routes/taskRoutes.ts
+  -> src/controllers/taskController.ts
+  -> src/repositories/taskRepository.ts
   -> Postgres
 ```
 

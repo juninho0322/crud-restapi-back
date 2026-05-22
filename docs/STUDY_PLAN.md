@@ -14,24 +14,24 @@ finish at the database
 
 ```text
 Browser UI
-  public/index.html
-  public/styles.css
-  public/app.js
+  src/client/index.html
+  src/client/src/styles-app.css
+  src/client/src/App.tsx
 
 API Server
-  src/server.js
-  src/app.js
-  src/routes/taskRoutes.js
-  src/controllers/taskController.js
-  src/validators/taskValidator.js
-  src/repositories/taskRepository.js
+  src/server.ts
+  src/app.ts
+  src/routes/taskRoutes.ts
+  src/controllers/taskController.ts
+  src/validators/taskValidator.ts
+  src/repositories/taskRepository.ts
 
 Storage
   local: data/tasks.json
   deployed: Supabase Postgres
 
 Deployment
-  api/index.js
+  api/index.ts
   vercel.json
 ```
 
@@ -40,26 +40,26 @@ Deployment
 Read this top to bottom. This is the most important mental model.
 
 ```text
-public/app.js
+src/client/src/App.tsx
   talks to /api/tasks using fetch()
 
-src/app.js
+src/app.ts
   receives /api/tasks
   sends those requests to taskRoutes
 
-src/routes/taskRoutes.js
+src/routes/taskRoutes.ts
   chooses the correct controller based on method + URL
 
-src/controllers/taskController.js
+src/controllers/taskController.ts
   reads req
   calls validator if input must be checked
   calls repository for data
   sends res
 
-src/validators/taskValidator.js
+src/validators/taskValidator.ts
   checks req.body
 
-src/repositories/taskRepository.js
+src/repositories/taskRepository.ts
   local: reads/writes data/tasks.json
   deployed: reads/writes Supabase Postgres
 
@@ -136,7 +136,7 @@ Goal: connect your existing frontend knowledge to the API.
 Open:
 
 ```text
-public/app.js
+src/client/src/App.tsx
 ```
 
 Study these functions in order:
@@ -174,13 +174,13 @@ Goal: understand how requests enter the backend.
 Open:
 
 ```text
-src/server.js
-src/app.js
+src/server.ts
+src/app.ts
 ```
 
-`src/server.js` starts the server locally.
+`src/server.ts` starts the server locally.
 
-`src/app.js` builds the Express app.
+`src/app.ts` builds the Express app.
 
 Study these lines:
 
@@ -216,7 +216,7 @@ Checkpoint:
 You should be able to say:
 
 ```text
-src/app.js connects middleware, frontend files, API routes, and error handlers.
+src/app.ts connects middleware, frontend files, API routes, and error handlers.
 ```
 
 ## Phase 4: Learn Routes
@@ -226,7 +226,7 @@ Goal: understand how URL + HTTP method chooses code.
 Open:
 
 ```text
-src/routes/taskRoutes.js
+src/routes/taskRoutes.ts
 ```
 
 Study this map:
@@ -267,7 +267,7 @@ Goal: understand request/response logic.
 Open:
 
 ```text
-src/controllers/taskController.js
+src/controllers/taskController.ts
 ```
 
 Study one function at a time:
@@ -313,7 +313,7 @@ Goal: understand how backend protects itself from bad input.
 Open:
 
 ```text
-src/validators/taskValidator.js
+src/validators/taskValidator.ts
 ```
 
 Study:
@@ -349,7 +349,7 @@ Goal: understand the data layer.
 Open:
 
 ```text
-src/repositories/taskRepository.js
+src/repositories/taskRepository.ts
 ```
 
 Study these functions:
@@ -425,7 +425,7 @@ Goal: understand how to prove the API works.
 Open:
 
 ```text
-tests/tasks.test.js
+tests/tasks.test.ts
 ```
 
 Run:
@@ -459,7 +459,7 @@ Goal: understand what Vercel changes.
 Open:
 
 ```text
-api/index.js
+api/index.ts
 vercel.json
 docs/VERCEL_DEPLOY.md
 ```
@@ -467,13 +467,13 @@ docs/VERCEL_DEPLOY.md
 Local:
 
 ```text
-src/server.js starts the server
+src/server.ts starts the server
 ```
 
 Vercel:
 
 ```text
-api/index.js exports the Express app
+api/index.ts exports the Express app
 ```
 
 Checkpoint:
@@ -481,7 +481,7 @@ Checkpoint:
 You should be able to say:
 
 ```text
-Vercel runs api/index.js as a serverless function.
+Vercel runs api/index.ts as a serverless function.
 ```
 
 ## Study Exercises
@@ -493,12 +493,12 @@ Do these in order.
 Create a task and write down each file touched:
 
 ```text
-public/app.js
-src/app.js
-src/routes/taskRoutes.js
-src/controllers/taskController.js
-src/validators/taskValidator.js
-src/repositories/taskRepository.js
+src/client/src/App.tsx
+src/app.ts
+src/routes/taskRoutes.ts
+src/controllers/taskController.ts
+src/validators/taskValidator.ts
+src/repositories/taskRepository.ts
 data/tasks.json or Supabase
 ```
 
@@ -509,12 +509,12 @@ Add `priority` to tasks.
 You will need to touch:
 
 ```text
-public/index.html
-public/app.js
-src/validators/taskValidator.js
-src/repositories/taskRepository.js
+src/client/index.html
+src/client/src/App.tsx
+src/validators/taskValidator.ts
+src/repositories/taskRepository.ts
 Supabase table
-tests/tasks.test.js
+tests/tasks.test.ts
 ```
 
 ### Exercise 3: Add PATCH
@@ -579,12 +579,12 @@ Use this exact order:
 ```text
 1. README.md
 2. docs/STUDY_PLAN.md
-3. public/app.js
-4. src/app.js
-5. src/routes/taskRoutes.js
-6. src/controllers/taskController.js
-7. src/validators/taskValidator.js
-8. src/repositories/taskRepository.js
-9. tests/tasks.test.js
+3. src/client/src/App.tsx
+4. src/app.ts
+5. src/routes/taskRoutes.ts
+6. src/controllers/taskController.ts
+7. src/validators/taskValidator.ts
+8. src/repositories/taskRepository.ts
+9. tests/tasks.test.ts
 10. docs/VERCEL_DEPLOY.md
 ```

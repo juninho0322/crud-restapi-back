@@ -1,153 +1,64 @@
-# Frontend Study Guide
+# React Frontend Study Guide
 
-This guide is for learning the visual part of the project. The frontend lives in `public/` and is served by the Express backend.
-
-Because you already know frontend, use the frontend as your map into the backend. Every important backend action starts from a frontend `fetch()` call.
+The frontend is now React + TypeScript.
 
 ## Frontend Files
 
 ```text
-public/
-  index.html   Page structure
-  styles.css   Visual design
-  app.js       Browser behavior and API calls
+src/client/
+  index.html
+  src/main.tsx
+  src/App.tsx
+  src/components/StudyGuide.tsx
+  src/components/ArchitectureDiagram.tsx
+  src/types.ts
+  src/styles-app.css
+  src/styles-diagram.css
 ```
 
-## How The Frontend Talks To The Backend
+## How React Talks To The Backend
 
-The frontend uses `fetch()` in `public/app.js`.
+React uses `fetch()` in `src/client/src/App.tsx`.
 
-```js
+```ts
 fetch("/api/tasks")
 ```
 
-Because the frontend and backend are served from the same Express server, the browser can call `/api/tasks` directly.
-
-## Frontend To Backend Dependency Map
+The frontend does not import backend files directly. It talks to the backend through HTTP.
 
 ```text
-public/app.js
-  apiRequest()
-    -> fetch("/api/tasks")
-      -> src/app.js
-        -> src/routes/taskRoutes.js
-          -> src/controllers/taskController.js
-            -> src/repositories/taskRepository.js
-              -> data/tasks.json
+src/client/src/App.tsx
+  -> fetch("/api/tasks")
+  -> src/app.ts
+  -> src/routes/taskRoutes.ts
+  -> src/controllers/taskController.ts
+  -> src/repositories/taskRepository.ts
+  -> data/tasks.json locally or Supabase on Vercel
 ```
-
-The frontend does not import backend files directly. It talks to the backend through HTTP.
 
 ## Main Frontend Flow
 
 ```text
 User clicks or submits a form
-  -> event listener runs
-  -> public/app.js builds a request
+  -> React event handler runs
+  -> App.tsx builds a request
   -> fetch() calls /api/tasks
   -> Express backend handles the request
   -> backend returns JSON
-  -> public/app.js updates browser state
-  -> renderTasks() redraws the task list
+  -> React state updates
+  -> JSX re-renders the task list
 ```
 
-## Important Functions In `public/app.js`
+## Important Functions In `App.tsx`
 
-### `apiRequest(method, url, body)`
+`apiRequest()` is the bridge between React and the API.
 
-The main API helper.
+`loadTasks()` reads tasks from the backend.
 
-All frontend API calls go through this function. It builds the fetch options, sends JSON when needed, checks for errors, and returns the backend response.
+`saveTask()` creates or updates a task.
 
-### `loadTasks()`
+`toggleTask()` changes completed/open status.
 
-Reads tasks from the backend.
+`deleteTask()` removes one task.
 
-Called when the page first opens, when you refresh, and after create/update/delete.
-
-### `saveTask(event)`
-
-Handles the form submit.
-
-If there is no task ID, it creates a task with `POST /api/tasks`.
-
-If there is a task ID, it updates a task with `PUT /api/tasks/:id`.
-
-### `renderTasks()`
-
-Takes the JavaScript `tasks` array and turns it into visible HTML.
-
-This is why the screen changes after the API responds.
-
-### `startEdit(task)`
-
-Copies a task into the form so you can edit it.
-
-### `toggleTask(task)`
-
-Uses `PUT /api/tasks/:id` to switch a task between open and completed.
-
-### `deleteTask(id)`
-
-Uses `DELETE /api/tasks/:id` to remove a task.
-
-## Important Frontend Concepts
-
-### DOM
-
-The DOM is the browser's live version of the HTML page.
-
-JavaScript uses lines like this to find DOM elements:
-
-```js
-document.querySelector("#task-form")
-```
-
-### Event Listener
-
-An event listener waits for something to happen.
-
-Example:
-
-```js
-elements.form.addEventListener("submit", saveTask);
-```
-
-This means: when the form submits, run `saveTask`.
-
-### State
-
-State is data the frontend keeps in memory.
-
-In this project:
-
-```js
-let tasks = [];
-let activeFilter = "all";
-```
-
-### Render
-
-Render means turn data into UI.
-
-In this project, `renderTasks()` reads the `tasks` array and creates `<li>` elements on the page.
-
-## Practice Path
-
-1. Open `http://localhost:3000`.
-2. Create a task in the form.
-3. Watch the "Last API call" and "Current code path" panels.
-4. Open `public/app.js`.
-5. Find `saveTask()`.
-6. Follow it into `apiRequest()`.
-7. Open `src/routes/taskRoutes.js`.
-8. Find the matching backend route.
-9. Follow the route into the controller and repository.
-
-## Frontend Practice Challenges
-
-1. Add a search input to filter tasks by title.
-2. Add a priority dropdown with `low`, `medium`, and `high`.
-3. Show the created date in a nicer format.
-4. Add a button that clears the form.
-5. Add a small loading message while requests are running.
+`startEdit()` copies a task into React form state.
