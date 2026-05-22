@@ -349,6 +349,46 @@ textarea:focus {
   padding: 18px;
 }
 
+.api-history-title {
+  margin-top: 18px;
+}
+
+.api-history {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.api-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  padding: 10px 12px;
+}
+
+.api-history-item strong,
+.api-history-item span,
+.api-history-item small {
+  display: block;
+}
+
+.api-history-item strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.88rem;
+}
+
+.api-history-item span,
+.api-history-item small {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .study-layout {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -373,6 +413,30 @@ textarea:focus {
   padding-left: 22px;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.api-explainer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.api-explainer section {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfb;
+  padding: 14px;
+}
+
+.api-explainer h3 {
+  margin: 0 0 7px;
+  font-size: 0.98rem;
+}
+
+.api-explainer p {
+  color: var(--muted);
+  line-height: 1.45;
 }
 
 .phase-grid {
@@ -530,7 +594,8 @@ pre {
   .study-layout,
   .glossary,
   .phase-grid,
-  .checklist-grid {
+  .checklist-grid,
+  .api-explainer {
     grid-template-columns: 1fr;
   }
 

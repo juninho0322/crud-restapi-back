@@ -19,6 +19,8 @@ const elements = {
   statusMessage: document.querySelector("#status-message"),
   lastCall: document.querySelector("#last-call"),
   lastMethod: document.querySelector("#last-method"),
+  apiHistory: document.querySelector("#api-history"),
+  clearHistory: document.querySelector("#clear-history"),
   flowSteps: document.querySelectorAll(".flow-step"),
   currentAction: document.querySelector("#current-action"),
   codePath: document.querySelector("#code-path"),
@@ -29,6 +31,7 @@ const elements = {
 
 let tasks = [];
 let activeFilter = "all";
+let apiHistory = [];
 
 const lessons = {
   list: {
@@ -128,7 +131,7 @@ Meaning:
 
 // apiRequest is the single place where the frontend talks to the backend.
 // Every CREATE, READ, UPDATE, and DELETE action passes through here.
-async function apiRequest(method, url, body) {
+async function apiRequest(method, url, body, label = "User action") {
   const options = {
     method,
     headers: {}
@@ -139,7 +142,7 @@ async function apiRequest(method, url, body) {
     options.body = JSON.stringify(body);
   }
 
-  showLastCall(method, url, body);
+  showLastCall(method, url, body, label);
 
   const response = await fetch(url, options);
 
@@ -156,10 +159,22 @@ async function apiRequest(method, url, body) {
   return result;
 }
 
-function showLastCall(method, url, body) {
+function showLastCall(method, url, body, label) {
+  const call = {
+    id: Date.now(),
+    label,
+    method,
+    url,
+    body: body || null,
+    time: new Date().toLocaleTimeString()
+  };
+
+  apiHistory = [call, ...apiHistory].slice(0, 8);
+
   elements.lastMethod.textContent = method;
   elements.lastCall.textContent = JSON.stringify(
     {
+      label,
       frontendAction: "fetch() from public/app.js",
       backendEndpoint: `${method} ${url}`,
       requestBody: body || null,
@@ -168,6 +183,31 @@ function showLastCall(method, url, body) {
     null,
     2
   );
+
+  renderApiHistory();
+}
+
+function renderApiHistory() {
+  elements.apiHistory.innerHTML = "";
+
+  apiHistory.forEach((call) => {
+    const item = document.createElement("li");
+    item.className = "api-history-item";
+
+    item.innerHTML = `
+      <div>
+        <strong></strong>
+        <span></span>
+      </div>
+      <small></small>
+    `;
+
+    item.querySelector("strong").textContent = `${call.method} ${call.url}`;
+    item.querySelector("span").textContent = call.label;
+    item.querySelector("small").textContent = call.time;
+
+    elements.apiHistory.appendChild(item);
+  });
 }
 
 function setLesson(key) {
@@ -291,7 +331,7 @@ async function loadTasks() {
     setLesson("list");
     showFlow("GET");
     const query = activeFilter === "all" ? "" : `?completed=${activeFilter}`;
-    const result = await apiRequest("GET", `${apiUrl}${query}`);
+    const result = await apiRequest("GET", `${apiUrl}${query}`, null, "Automatic refresh");
     tasks = result.data;
     renderTasks();
     setStatus("Tasks loaded from the API.");
@@ -317,7 +357,12 @@ async function saveTask(event) {
   }
 
   try {
-    await apiRequest(isEditing ? "PUT" : "POST", isEditing ? `${apiUrl}/${id}` : apiUrl, payload);
+    await apiRequest(
+      isEditing ? "PUT" : "POST",
+      isEditing ? `${apiUrl}/${id}` : apiUrl,
+      payload,
+      isEditing ? "Save edit" : "Create task"
+    );
     resetForm();
     await loadTasks();
     setStatus(isEditing ? "Task updated." : "Task created.");
@@ -334,7 +379,7 @@ async function toggleTask(task) {
       title: task.title,
       description: task.description,
       completed: !task.completed
-    });
+    }, task.completed ? "Reopen task" : "Complete task");
     await loadTasks();
     setStatus(task.completed ? "Task reopened." : "Task completed.");
   } catch (error) {
@@ -346,7 +391,7 @@ async function deleteTask(id) {
   try {
     setLesson("delete");
     showFlow("DELETE");
-    await apiRequest("DELETE", `${apiUrl}/${id}`);
+    await apiRequest("DELETE", `${apiUrl}/${id}`, null, "Delete task");
     await loadTasks();
     setStatus("Task deleted.");
   } catch (error) {
@@ -357,6 +402,10 @@ async function deleteTask(id) {
 elements.form.addEventListener("submit", saveTask);
 elements.cancelEdit.addEventListener("click", resetForm);
 elements.refresh.addEventListener("click", loadTasks);
+elements.clearHistory.addEventListener("click", () => {
+  apiHistory = [];
+  renderApiHistory();
+});
 
 elements.filters.forEach((button) => {
   button.addEventListener("click", () => {
