@@ -39,7 +39,7 @@ app.get("/health", async (req, res, next) => {
 // Any request that starts with /api/tasks is sent to taskRoutes.
 app.use("/api/tasks", taskRoutes);
 // React client routes should return the built index.html.
-app.get(["/", "/diagram.html"], (req, res) => {
+app.get(["/", "/diagram.html", "/breakdown"], (req, res) => {
     res.sendFile(path.join(clientBuildDirectory, "index.html"));
 });
 // If no route matched above, this creates a clean 404 response.

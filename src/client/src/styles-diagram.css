@@ -30,11 +30,15 @@
 .api-contract { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 18px; }
 .api-contract h2 { margin-bottom: 8px; font-size: 1.4rem; }
 .api-contract p:not(.eyebrow) { color: var(--muted); line-height: 1.5; }
-.code-popover { position: fixed; right: 24px; bottom: 24px; z-index: 20; width: min(560px, calc(100vw - 32px)); max-height: min(70vh, 620px); overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); padding: 16px; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; align-items: end; justify-items: end; background: rgba(23, 33, 27, 0.22); padding: 24px; }
+.code-popover { width: min(560px, calc(100vw - 32px)); max-height: min(78vh, 680px); overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); padding: 16px; }
 .popover-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
 #popover-file { color: var(--accent); font-size: 0.78rem; font-weight: 800; }
 .popover-header h2 { font-size: 1.1rem; }
+.popover-actions { display: flex; align-items: center; gap: 8px; }
 .popover-header span { border-radius: 999px; background: var(--panel-soft); padding: 6px 10px; color: var(--accent-dark); font-size: 0.78rem; font-weight: 800; white-space: nowrap; }
+.modal-close { display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--text); font-weight: 800; }
+.modal-close:hover, .modal-close:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 4px rgba(40, 124, 107, 0.14); }
 .popover-explanation { margin-bottom: 12px; color: var(--muted); line-height: 1.45; }
 .path-row { display: grid; gap: 5px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfb; padding: 10px 12px; }
 .path-row strong { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; }
@@ -44,5 +48,6 @@
   .diagram-board { display: grid; gap: 12px; min-height: 0; padding: 14px; }
   .connector-lines { display: none; }
   .diagram-node { position: static; width: 100%; }
-  .code-popover { position: static; width: 100%; margin-top: 18px; }
+  .modal-backdrop { align-items: end; justify-items: center; padding: 16px; }
+  .code-popover { width: 100%; }
 }

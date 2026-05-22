@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { ApiHistoryItem, ApiMethod, FilterValue, LessonKey, Task } from "./types.js";
 import { ArchitectureDiagram } from "./components/ArchitectureDiagram.js";
+import { CodeBreakdown } from "./components/CodeBreakdown.js";
 import { StudyGuide } from "./components/StudyGuide.js";
 
 const apiUrl = "/api/tasks";
@@ -103,6 +104,10 @@ type TaskListResponse = {
 
 function isDiagramPage() {
   return window.location.pathname === "/diagram.html";
+}
+
+function isBreakdownPage() {
+  return window.location.pathname === "/breakdown";
 }
 
 export default function App() {
@@ -281,6 +286,10 @@ export default function App() {
     return <ArchitectureDiagram />;
   }
 
+  if (isBreakdownPage()) {
+    return <CodeBreakdown />;
+  }
+
   return (
     <main className="app-shell">
       <section className="workspace">
@@ -295,6 +304,9 @@ export default function App() {
             </a>
             <a className="docs-link" href="/diagram.html">
               Architecture diagram
+            </a>
+            <a className="docs-link" href="/breakdown">
+              Code breakdown
             </a>
             <a className="docs-link" href="#study-guide">
               Study guide

@@ -49,7 +49,7 @@ app.get("/health", async (req: Request, res: Response, next: NextFunction) => {
 app.use("/api/tasks", taskRoutes);
 
 // React client routes should return the built index.html.
-app.get(["/", "/diagram.html"], (req: Request, res: Response) => {
+app.get(["/", "/diagram.html", "/breakdown"], (req: Request, res: Response) => {
   res.sendFile(path.join(clientBuildDirectory, "index.html"));
 });
 

@@ -31,3 +31,5 @@ export type DiagramNodeKey =
   | "repositories"
   | "local"
   | "deployed";
+
+export type AppPage = "dashboard" | "diagram" | "breakdown";

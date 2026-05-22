@@ -125,8 +125,8 @@ const nodes: Array<{ key: DiagramNodeKey; title: string; file: string; className
 ];
 
 export function ArchitectureDiagram() {
-  const [activeNode, setActiveNode] = useState<DiagramNodeKey>("frontend");
-  const lesson = nodeLessons[activeNode];
+  const [activeNode, setActiveNode] = useState<DiagramNodeKey | null>(null);
+  const lesson = activeNode ? nodeLessons[activeNode] : null;
 
   return (
     <main className="diagram-shell">
@@ -138,6 +138,7 @@ export function ArchitectureDiagram() {
         </div>
         <nav className="diagram-nav" aria-label="Diagram navigation">
           <a href="/">Back to app</a>
+          <a href="/breakdown">Code breakdown</a>
           <a href="/api/tasks" target="_blank" rel="noreferrer">Raw JSON</a>
         </nav>
       </header>
@@ -193,21 +194,37 @@ Backend returns:
 { "data": { "id": "...", "title": "Study API" } }`}</pre>
       </section>
 
-      <div className="code-popover visible" role="dialog" aria-live="polite" aria-label="Code explanation">
-        <div className="popover-header">
-          <div>
-            <p id="popover-file">{lesson.file}</p>
-            <h2>{lesson.title}</h2>
+      {lesson ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setActiveNode(null)}>
+          <div
+            className="code-popover visible"
+            role="dialog"
+            aria-modal="true"
+            aria-live="polite"
+            aria-label="Code explanation"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="popover-header">
+              <div>
+                <p id="popover-file">{lesson.file}</p>
+                <h2>{lesson.title}</h2>
+              </div>
+              <div className="popover-actions">
+                <span>{lesson.role}</span>
+                <button className="modal-close" type="button" aria-label="Close code modal" onClick={() => setActiveNode(null)}>
+                  x
+                </button>
+              </div>
+            </div>
+            <div className="path-row">
+              <strong>Path</strong>
+              <code>{lesson.path}</code>
+            </div>
+            <p className="popover-explanation">{lesson.explanation}</p>
+            <pre><code>{lesson.code}</code></pre>
           </div>
-          <span>{lesson.role}</span>
         </div>
-        <div className="path-row">
-          <strong>Path</strong>
-          <code>{lesson.path}</code>
-        </div>
-        <p className="popover-explanation">{lesson.explanation}</p>
-        <pre><code>{lesson.code}</code></pre>
-      </div>
+      ) : null}
     </main>
   );
 }
