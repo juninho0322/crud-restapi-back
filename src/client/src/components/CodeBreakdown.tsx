@@ -57,39 +57,143 @@ const backendTerms = [
 
 const fileWalkthrough = [
   {
+    order: 1,
     path: "src/client/src/App.tsx",
     purpose: "React dashboard, form state, task list, fetch calls, API history, and study panels.",
-    readFor: "Find apiRequest(), saveTask(), loadTasks(), toggleTask(), and deleteTask()."
+    talksTo: "Calls the backend API with fetch(). It does not talk to the database directly.",
+    readFor: "Find apiRequest(), saveTask(), loadTasks(), toggleTask(), and deleteTask().",
+    exercise: "Change the task title in the form, submit it, then find which function created the POST request."
   },
   {
+    order: 2,
     path: "src/app.ts",
     purpose: "Creates the Express app. Connects middleware, React static build, health route, task API routes, and error handlers.",
-    readFor: "Find app.use(express.json()), app.use('/api/tasks', taskRoutes), and app.use(errorHandler)."
+    talksTo: "Receives browser/API traffic, sends /api/tasks traffic to the router, and serves the built React app.",
+    readFor: "Find app.use(express.json()), app.use('/api/tasks', taskRoutes), and app.use(errorHandler).",
+    exercise: "Visit /health in the browser and connect that response back to this file."
   },
   {
+    order: 3,
     path: "src/routes/taskRoutes.ts",
     purpose: "Maps HTTP methods and URLs to controller functions.",
-    readFor: "Read it like a menu: GET goes to listTasks, POST goes to createTask, PUT goes to updateTask."
+    talksTo: "Receives requests from app.ts and passes them to controller functions.",
+    readFor: "Read it like a menu: GET goes to listTasks, POST goes to createTask, PUT goes to updateTask.",
+    exercise: "Write down every endpoint: method, URL, and controller name."
   },
   {
+    order: 4,
     path: "src/controllers/taskController.ts",
     purpose: "Owns request and response logic for tasks.",
-    readFor: "Look for req.body, req.params.id, validation, repository calls, and res.status(...).json(...)."
+    talksTo: "Receives req/res from Express, calls validators, calls the repository, then sends JSON responses.",
+    readFor: "Look for req.body, req.params.id, validation, repository calls, and res.status(...).json(...).",
+    exercise: "Follow createTask line by line and explain where the input comes from and where the response is sent."
   },
   {
+    order: 5,
     path: "src/validators/taskValidator.ts",
     purpose: "Protects the backend from invalid input.",
-    readFor: "Notice that backend validation still matters even if the frontend has required fields."
+    talksTo: "Used by controllers before data reaches the repository.",
+    readFor: "Notice that backend validation still matters even if the frontend has required fields.",
+    exercise: "Try sending an empty title and connect the 400 error to the validation code."
   },
   {
+    order: 6,
     path: "src/repositories/taskRepository.ts",
     purpose: "Reads and writes data. Chooses local JSON, temporary memory, or Supabase/Postgres.",
-    readFor: "Find create(), findAll(), update(), remove(), and getStorageStatus()."
+    talksTo: "Talks to the storage system: local JSON in development, memory fallback, or Supabase/Postgres in production.",
+    readFor: "Find create(), findAll(), update(), remove(), and getStorageStatus().",
+    exercise: "Create a task, then find the repository function that writes it."
   },
   {
+    order: 7,
+    path: "src/types/task.ts",
+    purpose: "Defines the TypeScript shapes used by backend task data.",
+    talksTo: "Imported by backend files so they agree about what a Task looks like.",
+    readFor: "Compare Task, CreateTaskPayload, and UpdateTaskPayload.",
+    exercise: "Explain why creating a task does not need an id, but a saved task always has one."
+  },
+  {
+    order: 8,
     path: "tests/tasks.test.ts",
     purpose: "Automated proof that the API can create, list, update, delete, and validate tasks.",
-    readFor: "Notice the tests call Express directly with supertest instead of using the browser."
+    talksTo: "Imports the Express app and sends fake HTTP requests with supertest.",
+    readFor: "Notice the tests call Express directly with supertest instead of using the browser.",
+    exercise: "Run npm test, then match each test action to an endpoint."
+  }
+];
+
+const learningPath = [
+  {
+    step: "1",
+    title: "Use the app first",
+    goal: "Understand the feature before reading the implementation.",
+    files: ["Browser page: /"],
+    learn:
+      "Create, edit, complete, filter, and delete tasks. Watch the API history panel each time. The UI is showing you which HTTP request just happened.",
+    example: "When you create a task, the browser sends POST /api/tasks with JSON body { title, description, completed }."
+  },
+  {
+    step: "2",
+    title: "Understand the API contract",
+    goal: "Know what the frontend is allowed to ask the backend.",
+    files: ["src/routes/taskRoutes.ts", "src/controllers/taskController.ts"],
+    learn:
+      "Write down the endpoint list: GET /api/tasks, POST /api/tasks, PUT /api/tasks/:id, DELETE /api/tasks/:id. This is the contract between frontend and backend.",
+    example: "POST means create. GET means read. PUT means update. DELETE means remove."
+  },
+  {
+    step: "3",
+    title: "Follow one request end to end",
+    goal: "Trace one action through every layer instead of trying to memorize everything.",
+    files: ["src/client/src/App.tsx", "src/app.ts", "src/routes/taskRoutes.ts", "src/controllers/taskController.ts", "src/repositories/taskRepository.ts"],
+    learn:
+      "Start with saveTask() in React, then follow the request into Express, then route, controller, repository, storage, response, and React state update.",
+    example: "saveTask() -> fetch() -> app.use('/api/tasks') -> router.post() -> createTask() -> create() -> res.status(201).json(...)."
+  },
+  {
+    step: "4",
+    title: "Learn the backend layers",
+    goal: "Know why the project is split into files.",
+    files: ["src/app.ts", "src/routes/taskRoutes.ts", "src/controllers/taskController.ts", "src/repositories/taskRepository.ts"],
+    learn:
+      "app.ts wires the server. routes choose the controller. controllers understand HTTP. repositories understand storage. This separation keeps each file easier to reason about.",
+    example: "The controller says 'create a task'. The repository decides how that task is actually saved."
+  },
+  {
+    step: "5",
+    title: "Learn the code building blocks",
+    goal: "Read TypeScript/JavaScript syntax without getting lost.",
+    files: ["src/controllers/taskController.ts", "src/repositories/taskRepository.ts", "src/client/src/App.tsx"],
+    learn:
+      "Focus on functions, parameters, callbacks, objects, array methods, async/await, imports, exports, and TypeScript types. These are the repeated patterns everywhere.",
+    example: "router.post('/', createTask) passes createTask as a callback. Express calls it later when a POST request arrives."
+  },
+  {
+    step: "6",
+    title: "Study validation and errors",
+    goal: "Understand how a backend protects itself.",
+    files: ["src/validators/taskValidator.ts", "src/controllers/taskController.ts", "src/app.ts"],
+    learn:
+      "The frontend can help users, but the backend must still validate. Bad input returns 400. Missing records return 404. Unexpected failures go to the error handler.",
+    example: "An empty title should not reach the database. Validation stops it first."
+  },
+  {
+    step: "7",
+    title: "Study storage",
+    goal: "Understand where data lives and why Supabase appears in the project.",
+    files: ["src/repositories/taskRepository.ts", ".env.example", "docs/VERCEL_DEPLOY.md"],
+    learn:
+      "The repository can use local JSON, temporary memory, or Postgres. On Vercel, real saved data needs DATABASE_URL or POSTGRES_URL pointing to Supabase.",
+    example: "If /health says storage: 'postgres', the API is connected to Postgres."
+  },
+  {
+    step: "8",
+    title: "Read the tests",
+    goal: "Use tests as executable documentation.",
+    files: ["tests/tasks.test.ts"],
+    learn:
+      "The tests show the API behavior without needing the browser. They create a task, list tasks, update one, delete one, and check validation.",
+    example: "supertest(app).post('/api/tasks').send(...) behaves like a frontend POST request."
   }
 ];
 
@@ -117,6 +221,117 @@ const requestFlow = `1. React form submits
 
 8. React updates state
    setTasks(...) -> JSX re-renders the UI`;
+
+const codeConnectionFlow = [
+  {
+    number: "1",
+    label: "User event",
+    concept: "Event handler function",
+    file: "src/client/src/App.tsx",
+    code: "onSubmit={saveTask}",
+    receives: "A browser submit event from the form.",
+    sends: "Calls saveTask(), the frontend function that begins the create flow."
+  },
+  {
+    number: "2",
+    label: "Frontend function",
+    concept: "async function + parameters",
+    file: "src/client/src/App.tsx",
+    code: "saveTask() -> apiRequest('POST', '/api/tasks', payload)",
+    receives: "React state values from the form: title, description, and completed.",
+    sends: "Passes method, URL, and payload into the reusable API helper."
+  },
+  {
+    number: "3",
+    label: "Fetch helper",
+    concept: "HTTP method + JSON body",
+    file: "src/client/src/App.tsx",
+    code: "fetch('/api/tasks', { method: 'POST', body: JSON.stringify(payload) })",
+    receives: "A JavaScript object payload from saveTask().",
+    sends: "An HTTP request to the backend API."
+  },
+  {
+    number: "4",
+    label: "Express app",
+    concept: "Middleware pipeline",
+    file: "src/app.ts",
+    code: "app.use(express.json()); app.use('/api/tasks', taskRoutes);",
+    receives: "The HTTP request from fetch().",
+    sends: "Parsed JSON on req.body and forwards /api/tasks to the router."
+  },
+  {
+    number: "5",
+    label: "Route",
+    concept: "Router method + callback",
+    file: "src/routes/taskRoutes.ts",
+    code: "router.post('/', createTask);",
+    receives: "A POST request whose path matches /api/tasks.",
+    sends: "Calls createTask later as the callback for this request."
+  },
+  {
+    number: "6",
+    label: "Controller",
+    concept: "req, res, next parameters",
+    file: "src/controllers/taskController.ts",
+    code: "createTask(req, res, next)",
+    receives: "req.body from Express and response tools from res.",
+    sends: "Valid data to the repository, or errors to next(error)."
+  },
+  {
+    number: "7",
+    label: "Validator",
+    concept: "Guard function",
+    file: "src/validators/taskValidator.ts",
+    code: "validateCreateTask(req.body)",
+    receives: "Raw input from the frontend.",
+    sends: "Clean payload forward, or a 400-style error if input is invalid."
+  },
+  {
+    number: "8",
+    label: "Repository",
+    concept: "Data access function",
+    file: "src/repositories/taskRepository.ts",
+    code: "create(payload)",
+    receives: "Validated task data from the controller.",
+    sends: "A saved task object from JSON storage or Postgres."
+  },
+  {
+    number: "9",
+    label: "Response",
+    concept: "Status code + JSON response",
+    file: "src/controllers/taskController.ts",
+    code: "res.status(201).json({ data: task })",
+    receives: "The saved task returned by the repository.",
+    sends: "JSON back to the frontend."
+  },
+  {
+    number: "10",
+    label: "React update",
+    concept: "State setter + re-render",
+    file: "src/client/src/App.tsx",
+    code: "setTasks(...); setApiHistory(...);",
+    receives: "The JSON response and latest task list.",
+    sends: "New state into React, which re-renders the visible UI."
+  }
+];
+
+const supportConnections = [
+  {
+    title: "Types",
+    file: "src/types/task.ts",
+    connection: "Shared idea of what a Task looks like. Types guide functions, payloads, and repository results."
+  },
+  {
+    title: "Imports / exports",
+    file: "Many files",
+    connection: "Exports make functions available. Imports connect files without placing all code in one giant file."
+  },
+  {
+    title: "Error handler",
+    file: "src/app.ts",
+    connection: "If a controller calls next(error), Express skips normal response logic and sends an error response."
+  }
+];
 
 const codePieces = [
   {
@@ -252,8 +467,67 @@ React -> HTTP request -> Express route -> Controller -> Repository -> Storage`}<
       </section>
 
       <section className="learning-panel">
+        <h2>Numbered Learning Path</h2>
+        <p>
+          Study this project in this order. Each step gives you a goal, the files to open, what to learn, and a small example to connect
+          the code to the running app.
+        </p>
+        <div className="path-list">
+          {learningPath.map((item) => (
+            <article className="path-card" key={item.step}>
+              <div className="path-number">{item.step}</div>
+              <div>
+                <h3>{item.title}</h3>
+                <strong>{item.goal}</strong>
+                <p>{item.learn}</p>
+                <div className="path-files" aria-label={`${item.title} files`}>
+                  {item.files.map((file) => (
+                    <code key={file}>{file}</code>
+                  ))}
+                </div>
+                <small>{item.example}</small>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="learning-panel">
         <h2>Full Create Request Flow</h2>
         <pre>{requestFlow}</pre>
+      </section>
+
+      <section className="learning-panel">
+        <h2>Code Pieces Connection Diagram</h2>
+        <p>
+          This map follows one create-task request and shows which coding idea appears at each step. Read each card as:
+          this piece receives something, does one job, then sends something to the next piece.
+        </p>
+        <div className="code-map" aria-label="Code pieces connection diagram">
+          {codeConnectionFlow.map((node, index) => (
+            <article className="code-map-node" key={node.number}>
+              <div className="code-map-topline">
+                <span>{node.number}</span>
+                <strong>{node.label}</strong>
+              </div>
+              <h3>{node.concept}</h3>
+              <code>{node.file}</code>
+              <pre><code>{node.code}</code></pre>
+              <p><strong>Receives:</strong> {node.receives}</p>
+              <p><strong>Sends:</strong> {node.sends}</p>
+              {index < codeConnectionFlow.length - 1 && <div className="code-map-arrow" aria-hidden="true">Next</div>}
+            </article>
+          ))}
+        </div>
+        <div className="support-map" aria-label="Supporting code concepts">
+          {supportConnections.map((item) => (
+            <article className="support-card" key={item.title}>
+              <h3>{item.title}</h3>
+              <code>{item.file}</code>
+              <p>{item.connection}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="learning-panel">
@@ -290,13 +564,18 @@ React -> HTTP request -> Express route -> Controller -> Repository -> Storage`}<
       </section>
 
       <section className="learning-panel">
-        <h2>File-By-File Reading Plan</h2>
+        <h2>Numbered File-By-File Reading Plan</h2>
         <div className="file-list">
           {fileWalkthrough.map((file) => (
             <article className="file-card" key={file.path}>
-              <code>{file.path}</code>
+              <div className="file-card-header">
+                <span>{file.order}</span>
+                <code>{file.path}</code>
+              </div>
               <p>{file.purpose}</p>
-              <small>{file.readFor}</small>
+              <small><strong>Talks to:</strong> {file.talksTo}</small>
+              <small><strong>Read for:</strong> {file.readFor}</small>
+              <small><strong>Practice:</strong> {file.exercise}</small>
             </article>
           ))}
         </div>
