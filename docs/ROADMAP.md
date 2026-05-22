@@ -28,6 +28,8 @@ For a frontend-only reading path, use `docs/FRONTEND_GUIDE.md`.
 
 If you know frontend and are learning backend, start with `docs/BACKEND_FOR_FRONTEND_DEVS.md`.
 
+For deployment, read `docs/VERCEL_DEPLOY.md`.
+
 ## Project Structure And Dependencies
 
 The project is split by responsibility. This makes it easier to learn what depends on what.
@@ -61,6 +63,9 @@ src/
 data/
   tasks.json             Local JSON storage
 
+api/
+  index.js               Vercel function entry point
+
 tests/
   tasks.test.js          Automated API checks
 ```
@@ -74,7 +79,7 @@ Browser UI
   -> controller
   -> validator
   -> repository
-  -> data file
+  -> data file locally or Postgres on Vercel
 ```
 
 Files should not depend backward. For example, `taskRepository.js` should not import `taskController.js`.

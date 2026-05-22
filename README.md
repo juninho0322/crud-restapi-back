@@ -11,11 +11,12 @@ Start here:
 1. Read [docs/ROADMAP.md](docs/ROADMAP.md).
 2. Read [docs/BACKEND_FOR_FRONTEND_DEVS.md](docs/BACKEND_FOR_FRONTEND_DEVS.md) if you know frontend and are learning backend.
 3. Read [docs/FRONTEND_GUIDE.md](docs/FRONTEND_GUIDE.md) for the browser side.
-4. Open `src/app.js` to see how the API is assembled.
-5. Open `public/app.js` to see how the frontend calls the API.
-6. Open `src/routes/taskRoutes.js` to see which URL talks to which controller.
-7. Open `src/controllers/taskController.js` to see the CRUD logic.
-8. Open `src/repositories/taskRepository.js` to see how data is saved.
+4. Read [docs/VERCEL_DEPLOY.md](docs/VERCEL_DEPLOY.md) for deployment.
+5. Open `src/app.js` to see how the API is assembled.
+6. Open `public/app.js` to see how the frontend calls the API.
+7. Open `src/routes/taskRoutes.js` to see which URL talks to which controller.
+8. Open `src/controllers/taskController.js` to see the CRUD logic.
+9. Open `src/repositories/taskRepository.js` to see how data is saved.
 
 The source files include comments explaining what each part does and how the files talk to each other.
 
@@ -107,6 +108,8 @@ public/
   index.html             Visual page structure
   styles.css             Visual styling
   app.js                 Browser JavaScript that calls the API
+api/
+  index.js               Vercel serverless function entry point
 src/
   app.js                 Express app setup
   server.js              Starts the HTTP server
@@ -116,7 +119,7 @@ src/
   routes/                API route definitions
   validators/            Request validation helpers
 data/
-  tasks.json             Local JSON database
+  tasks.json             Local JSON database for study
 tests/
   tasks.test.js          API tests
 ```
@@ -135,5 +138,6 @@ src/routes/taskRoutes.js
 src/controllers/taskController.js
   -> calls validators and repositories
 src/repositories/taskRepository.js
-  -> reads/writes data/tasks.json
+  -> reads/writes data/tasks.json locally
+  -> uses Postgres on Vercel when DATABASE_URL or POSTGRES_URL exists
 ```

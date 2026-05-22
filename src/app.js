@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
+import { getStorageMode } from "./repositories/taskRepository.js";
 import taskRoutes from "./routes/taskRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,7 +37,8 @@ app.use(express.static(publicDirectory));
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    message: "CRUD Study API is running"
+    message: "CRUD Study API is running",
+    storage: getStorageMode()
   });
 });
 

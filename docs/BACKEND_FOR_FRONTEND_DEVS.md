@@ -44,7 +44,9 @@ src/validators/taskValidator.js
   checks request body
 
 src/repositories/taskRepository.js
-  reads and writes data/tasks.json
+  reads and writes data/tasks.json locally
+  uses Postgres on Vercel when DATABASE_URL or POSTGRES_URL exists
+  uses temporary memory on Vercel if no database URL exists
 ```
 
 The repository does not call the controller.
@@ -113,7 +115,7 @@ src/validators/taskValidator.js
   checks if req.body is valid
 
 src/repositories/taskRepository.js
-  loads and saves tasks in data/tasks.json
+  loads and saves tasks in data/tasks.json locally or Postgres on Vercel
 
 data/tasks.json
   stores the actual task data
