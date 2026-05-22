@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
-import { getStorageMode } from "./repositories/taskRepository.js";
+import { getStorageStatus } from "./repositories/taskRepository.js";
 import taskRoutes from "./routes/taskRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -34,12 +34,19 @@ app.use(morgan("dev"));
 app.use(express.static(publicDirectory));
 
 // A health route is a tiny endpoint used to check whether the server is alive.
-app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    message: "CRUD Study API is running",
-    storage: getStorageMode()
-  });
+app.get("/health", async (req, res, next) => {
+  try {
+    const storage = await getStorageStatus();
+
+    return res.json({
+      status: "ok",
+      message: "CRUD Study API is running",
+      storage: storage.mode,
+      storageNote: storage.note
+    });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 // Any request that starts with /api/tasks is sent to taskRoutes.

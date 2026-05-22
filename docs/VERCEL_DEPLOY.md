@@ -109,6 +109,22 @@ means no working database connection is available yet, so the app is using tempo
 
 If you want permanent saved tasks, add a Postgres database in Vercel and make sure `DATABASE_URL` or `POSTGRES_URL` exists in the project environment variables.
 
+For Vercel serverless deployments, prefer the Supabase **connection pooler** string instead of the direct database string.
+
+It usually looks like this:
+
+```text
+postgresql://postgres.PROJECT_REF:YOUR_PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres
+```
+
+In Supabase, find it under:
+
+```text
+Project Settings -> Database -> Connection string -> Transaction pooler
+```
+
+Paste that full value into Vercel as `DATABASE_URL`, save it for Production, and redeploy.
+
 ## Important Learning Point
 
 The controller did not need to change when storage changed.

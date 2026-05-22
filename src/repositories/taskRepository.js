@@ -42,6 +42,24 @@ export function getStorageMode() {
   return "json-file-local";
 }
 
+export async function getStorageStatus() {
+  if (usePostgres && !postgresUnavailable) {
+    await ensureTasksTable();
+  }
+
+  const mode = getStorageMode();
+  const notes = {
+    postgres: "Connected to Postgres. Tasks should persist in Supabase.",
+    "memory-temporary": "Using temporary memory. Check DATABASE_URL/POSTGRES_URL if you expected Supabase.",
+    "json-file-local": "Using local data/tasks.json. This is expected for local development."
+  };
+
+  return {
+    mode,
+    note: notes[mode]
+  };
+}
+
 function markPostgresUnavailable(error) {
   postgresUnavailable = true;
   console.error("Postgres storage failed. Falling back to temporary memory storage.", error);

@@ -24,6 +24,8 @@ The client can be a browser, Postman, curl, a frontend app, or tests.
 
 In this project, the browser frontend lives in `public/`.
 
+For a step-by-step study plan, start with `docs/STUDY_PLAN.md`.
+
 For a frontend-only reading path, use `docs/FRONTEND_GUIDE.md`.
 
 If you know frontend and are learning backend, start with `docs/BACKEND_FOR_FRONTEND_DEVS.md`.

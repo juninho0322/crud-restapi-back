@@ -22,6 +22,7 @@
           <nav class="top-actions" aria-label="Study links">
             <a class="docs-link" href="/api/tasks" target="_blank">View raw JSON</a>
             <a class="docs-link" href="#study-guide">Study guide</a>
+            <a class="docs-link" href="#study-plan">Study plan</a>
           </nav>
         </header>
 
@@ -105,6 +106,81 @@
         </section>
 
         <section id="study-guide" class="study-layout" aria-label="Frontend learning guide">
+          <article id="study-plan" class="study-panel wide">
+            <div class="section-title">
+              <div>
+                <h2>Study plan</h2>
+                <p>Use this order when learning the project from frontend to backend.</p>
+              </div>
+            </div>
+            <div class="phase-grid">
+              <section class="phase-card">
+                <span>1</span>
+                <h3>Click the app</h3>
+                <p>Create, edit, complete, and delete a task. Watch the request panels change.</p>
+              </section>
+              <section class="phase-card">
+                <span>2</span>
+                <h3>Start at frontend</h3>
+                <p>Read <code>public/app.js</code>. Find <code>apiRequest()</code>, <code>saveTask()</code>, and <code>loadTasks()</code>.</p>
+              </section>
+              <section class="phase-card">
+                <span>3</span>
+                <h3>Enter Express</h3>
+                <p>Read <code>src/app.js</code>. This file connects middleware, frontend files, and API routes.</p>
+              </section>
+              <section class="phase-card">
+                <span>4</span>
+                <h3>Follow routes</h3>
+                <p>Read <code>src/routes/taskRoutes.js</code>. Match each HTTP method to a controller.</p>
+              </section>
+              <section class="phase-card">
+                <span>5</span>
+                <h3>Read controllers</h3>
+                <p>Read <code>src/controllers/taskController.js</code>. Look for <code>req</code>, <code>res</code>, validation, and repository calls.</p>
+              </section>
+              <section class="phase-card">
+                <span>6</span>
+                <h3>Finish at storage</h3>
+                <p>Read <code>src/repositories/taskRepository.js</code>. This is where local JSON or Supabase is used.</p>
+              </section>
+            </div>
+          </article>
+
+          <article class="study-panel wide">
+            <div class="section-title">
+              <div>
+                <h2>Who talks to who</h2>
+                <p>The dependency direction should always move downward.</p>
+              </div>
+            </div>
+            <pre>public/app.js
+  -> fetch("/api/tasks")
+  -> src/app.js
+  -> src/routes/taskRoutes.js
+  -> src/controllers/taskController.js
+  -> src/validators/taskValidator.js
+  -> src/repositories/taskRepository.js
+  -> local data/tasks.json or Supabase Postgres</pre>
+          </article>
+
+          <article class="study-panel wide">
+            <div class="section-title">
+              <div>
+                <h2>Reading checklist</h2>
+                <p>Tick these mentally as you study each part.</p>
+              </div>
+            </div>
+            <div class="checklist-grid">
+              <label><input type="checkbox" /> I can explain what <code>fetch()</code> sends.</label>
+              <label><input type="checkbox" /> I can explain what <code>express.json()</code> does.</label>
+              <label><input type="checkbox" /> I can match each route to its controller.</label>
+              <label><input type="checkbox" /> I can find where <code>req.body</code> is validated.</label>
+              <label><input type="checkbox" /> I can explain why repositories exist.</label>
+              <label><input type="checkbox" /> I can confirm deployed tasks in Supabase.</label>
+            </div>
+          </article>
+
           <article class="study-panel wide">
             <div class="section-title">
               <div>

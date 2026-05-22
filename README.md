@@ -8,15 +8,16 @@ The API manages `tasks` and stores them in a local JSON file at `data/tasks.json
 
 Start here:
 
-1. Read [docs/ROADMAP.md](docs/ROADMAP.md).
-2. Read [docs/BACKEND_FOR_FRONTEND_DEVS.md](docs/BACKEND_FOR_FRONTEND_DEVS.md) if you know frontend and are learning backend.
-3. Read [docs/FRONTEND_GUIDE.md](docs/FRONTEND_GUIDE.md) for the browser side.
-4. Read [docs/VERCEL_DEPLOY.md](docs/VERCEL_DEPLOY.md) for deployment.
-5. Open `src/app.js` to see how the API is assembled.
-6. Open `public/app.js` to see how the frontend calls the API.
-7. Open `src/routes/taskRoutes.js` to see which URL talks to which controller.
-8. Open `src/controllers/taskController.js` to see the CRUD logic.
-9. Open `src/repositories/taskRepository.js` to see how data is saved.
+1. Read [docs/STUDY_PLAN.md](docs/STUDY_PLAN.md).
+2. Read [docs/ROADMAP.md](docs/ROADMAP.md).
+3. Read [docs/BACKEND_FOR_FRONTEND_DEVS.md](docs/BACKEND_FOR_FRONTEND_DEVS.md) if you know frontend and are learning backend.
+4. Read [docs/FRONTEND_GUIDE.md](docs/FRONTEND_GUIDE.md) for the browser side.
+5. Read [docs/VERCEL_DEPLOY.md](docs/VERCEL_DEPLOY.md) for deployment.
+6. Open `src/app.js` to see how the API is assembled.
+7. Open `public/app.js` to see how the frontend calls the API.
+8. Open `src/routes/taskRoutes.js` to see which URL talks to which controller.
+9. Open `src/controllers/taskController.js` to see the CRUD logic.
+10. Open `src/repositories/taskRepository.js` to see how data is saved.
 
 The source files include comments explaining what each part does and how the files talk to each other.
 
