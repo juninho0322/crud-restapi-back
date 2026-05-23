@@ -71,7 +71,172 @@ Backend returns:
    res.status(201).json({ data: task })
 
 8. React updates state
-   setTasks(...) -> JSX re-renders the UI`,ae=[{number:`1`,label:`User event`,concept:`Event handler function`,file:`src/client/src/App.tsx`,code:`onSubmit={saveTask}`,receives:`A browser submit event from the form.`,sends:`Calls saveTask(), the frontend function that begins the create flow.`},{number:`2`,label:`Frontend function`,concept:`async function + parameters`,file:`src/client/src/App.tsx`,code:`saveTask() -> apiRequest('POST', '/api/tasks', payload)`,receives:`React state values from the form: title, description, and completed.`,sends:`Passes method, URL, and payload into the reusable API helper.`},{number:`3`,label:`Fetch helper`,concept:`HTTP method + JSON body`,file:`src/client/src/App.tsx`,code:`fetch('/api/tasks', { method: 'POST', body: JSON.stringify(payload) })`,receives:`A JavaScript object payload from saveTask().`,sends:`An HTTP request to the backend API.`},{number:`4`,label:`Express app`,concept:`Middleware pipeline`,file:`src/app.ts`,code:`app.use(express.json()); app.use('/api/tasks', taskRoutes);`,receives:`The HTTP request from fetch().`,sends:`Parsed JSON on req.body and forwards /api/tasks to the router.`},{number:`5`,label:`Route`,concept:`Router method + callback`,file:`src/routes/taskRoutes.ts`,code:`router.post('/', createTask);`,receives:`A POST request whose path matches /api/tasks.`,sends:`Calls createTask later as the callback for this request.`},{number:`6`,label:`Controller`,concept:`req, res, next parameters`,file:`src/controllers/taskController.ts`,code:`createTask(req, res, next)`,receives:`req.body from Express and response tools from res.`,sends:`Valid data to the repository, or errors to next(error).`},{number:`7`,label:`Validator`,concept:`Guard function`,file:`src/validators/taskValidator.ts`,code:`validateCreateTask(req.body)`,receives:`Raw input from the frontend.`,sends:`Clean payload forward, or a 400-style error if input is invalid.`},{number:`8`,label:`Repository`,concept:`Data access function`,file:`src/repositories/taskRepository.ts`,code:`create(payload)`,receives:`Validated task data from the controller.`,sends:`A saved task object from JSON storage or Postgres.`},{number:`9`,label:`Response`,concept:`Status code + JSON response`,file:`src/controllers/taskController.ts`,code:`res.status(201).json({ data: task })`,receives:`The saved task returned by the repository.`,sends:`JSON back to the frontend.`},{number:`10`,label:`React update`,concept:`State setter + re-render`,file:`src/client/src/App.tsx`,code:`setTasks(...); setApiHistory(...);`,receives:`The JSON response and latest task list.`,sends:`New state into React, which re-renders the visible UI.`}],oe=[{title:`Types`,file:`src/types/task.ts`,connection:`Shared idea of what a Task looks like. Types guide functions, payloads, and repository results.`},{title:`Imports / exports`,file:`Many files`,connection:`Exports make functions available. Imports connect files without placing all code in one giant file.`},{title:`Error handler`,file:`src/app.ts`,connection:`If a controller calls next(error), Express skips normal response logic and sends an error response.`}],se=[{title:`Function`,path:`src/controllers/taskController.ts`,code:`export async function createTask(req, res, next) {
+   setTasks(...) -> JSX re-renders the UI`,ae=[{number:`1`,label:`User event`,concept:`Event handler function`,file:`src/client/src/App.tsx`,previewCode:`onSubmit={saveTask}`,code:`<form id="task-form" className="editor" autoComplete="off" onSubmit={saveTask}>
+  <input
+    id="title"
+    name="title"
+    required
+    value={formState.title}
+    onChange={(event) => setFormState({ ...formState, title: event.target.value })}
+  />
+
+  <button className="primary-action" type="submit">
+    {formState.id ? "Save changes" : "Create task"}
+  </button>
+</form>`,receives:`A browser submit event from the form.`,sends:`Calls saveTask(), the frontend function that begins the create flow.`,hoverTitle:`What this code means`,hoverDetails:[`onSubmit is a React prop. It says: when this form is submitted, run this function.`,`{saveTask} passes the function itself. It does not run immediately. React runs it later after the user submits.`,`This is similar to a backend route callback: you give code to a system, and the system calls it at the right time.`],hoverReadNext:`In App.tsx, search for <form ... onSubmit={saveTask}> and then jump to async function saveTask(event).`},{number:`2`,label:`Frontend function`,concept:`async function + parameters`,file:`src/client/src/App.tsx`,previewCode:`saveTask() -> apiRequest('POST', '/api/tasks', payload)`,code:`async function saveTask(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+
+  const isEditing = Boolean(formState.id);
+  const payload = {
+    title: formState.title,
+    description: formState.description,
+    ...(isEditing ? { completed: formState.completed } : {})
+  };
+
+  await apiRequest<TaskResponse>(
+    isEditing ? "PUT" : "POST",
+    isEditing ? \`\${apiUrl}/\${formState.id}\` : apiUrl,
+    payload,
+    isEditing ? "Save edit" : "Create task"
+  );
+
+  resetForm();
+  await loadTasks();
+}`,receives:`React state values from the form: title, description, and completed.`,sends:`Passes method, URL, and payload into the reusable API helper.`,hoverTitle:`Why this function exists`,hoverDetails:[`saveTask is the bridge between the visible form and the backend API.`,`'POST' tells the backend this is a create action. '/api/tasks' tells it which resource to create.`,`payload is a plain object built from React state. It becomes JSON before leaving the browser.`],hoverReadNext:`Read the payload object inside saveTask(), then read the apiRequest call right below it.`},{number:`3`,label:`Fetch helper`,concept:`HTTP method + JSON body`,file:`src/client/src/App.tsx`,previewCode:`fetch('/api/tasks', { method: 'POST', body: JSON.stringify(payload) })`,code:`async function apiRequest<T>(method: ApiMethod, url: string, body?: unknown, label = "User action") {
+  const options: RequestInit = {
+    method,
+    headers: {}
+  };
+
+  if (body) {
+    options.headers = { "Content-Type": "application/json" };
+    options.body = JSON.stringify(body);
+  }
+
+  showLastCall(method, url, body ?? null, label);
+
+  const response = await fetch(url, options);
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Request failed");
+  }
+
+  return result as T;
+}`,receives:`A JavaScript object payload from saveTask().`,sends:`An HTTP request to the backend API.`,hoverTitle:`What fetch is doing`,hoverDetails:[`fetch is the browser's built-in function for making HTTP requests.`,`JSON.stringify(payload) converts a JavaScript object into JSON text, because HTTP sends text/bytes, not live JS objects.`,`The Content-Type header tells Express: the body is JSON, so express.json() should parse it.`],hoverReadNext:`In apiRequest(), find RequestInit, headers, body, fetch(), response.json(), and response.ok.`},{number:`4`,label:`Express app`,concept:`Middleware pipeline`,file:`src/app.ts`,previewCode:`app.use(express.json()); app.use('/api/tasks', taskRoutes);`,code:`const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(morgan("dev"));
+app.use(express.static(clientBuildDirectory));
+
+app.get("/health", async (req, res, next) => {
+  const storage = await getStorageStatus();
+  return res.json({ status: "ok", storage: storage.mode });
+});
+
+app.use("/api/tasks", taskRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);`,receives:`The HTTP request from fetch().`,sends:`Parsed JSON on req.body and forwards /api/tasks to the router.`,hoverTitle:`Express pipeline`,hoverDetails:[`app.use means: add this thing to the request pipeline.`,`express.json() runs before your controller and turns JSON text into req.body.`,`app.use('/api/tasks', taskRoutes) means every /api/tasks request enters taskRoutes.ts.`],hoverReadNext:`Read src/app.ts from top to bottom. The order matters because requests pass through it in order.`},{number:`5`,label:`Route`,concept:`Router method + callback`,file:`src/routes/taskRoutes.ts`,previewCode:`router.post('/', createTask);`,code:`import { Router } from "express";
+import {
+  createTask,
+  deleteTask,
+  getTaskById,
+  listTasks,
+  updateTask
+} from "../controllers/taskController.js";
+
+const router = Router();
+
+router.get("/", listTasks);
+router.get("/:id", getTaskById);
+router.post("/", createTask);
+router.put("/:id", updateTask);
+router.delete("/:id", deleteTask);
+
+export default router;`,receives:`A POST request whose path matches /api/tasks.`,sends:`Calls createTask later as the callback for this request.`,hoverTitle:`Route as a traffic sign`,hoverDetails:[`router.post is a JavaScript method on the Express router object.`,`'/' means the root of this router. Since app.ts mounted it at /api/tasks, the full path is POST /api/tasks.`,`createTask is a callback. Express saves it now and calls it later when a matching request arrives.`],hoverReadNext:`Write a small table: router line, full endpoint, controller function.`},{number:`6`,label:`Controller`,concept:`req, res, next parameters`,file:`src/controllers/taskController.ts`,previewCode:`createTask(req, res, next)`,code:`export async function createTask(req: Request, res: Response, next: NextFunction) {
+  try {
+    const payload = req.body as Partial<CreateTaskPayload>;
+    const validationError = validateCreateTask(payload);
+
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
+    }
+
+    const task = await create(payload as CreateTaskPayload);
+
+    return res.status(201).json({ data: task });
+  } catch (error) {
+    return next(error);
+  }
+}`,receives:`req.body from Express and response tools from res.`,sends:`Valid data to the repository, or errors to next(error).`,hoverTitle:`Controller parameters`,hoverDetails:[`req means request. It contains the data coming in from the frontend.`,`res means response. It is how the controller answers the frontend.`,`next is used when something goes wrong. It sends the error to the error handler instead of crashing silently.`],hoverReadNext:`Read createTask() line by line: payload, validationError, create(), status(201), json().`},{number:`7`,label:`Validator`,concept:`Guard function`,file:`src/validators/taskValidator.ts`,previewCode:`validateCreateTask(req.body)`,code:`function isMissingText(value: unknown) {
+  return typeof value !== "string" || value.trim().length === 0;
+}
+
+export function validateCreateTask(payload: Partial<CreateTaskPayload>) {
+  if (isMissingText(payload.title)) {
+    return "Title is required";
+  }
+
+  if (payload.description !== undefined && typeof payload.description !== "string") {
+    return "Description must be a string";
+  }
+
+  return null;
+}`,receives:`Raw input from the frontend.`,sends:`Clean payload forward, or a 400-style error if input is invalid.`,hoverTitle:`Why validation matters`,hoverDetails:[`Frontend validation helps the user, but backend validation protects the data.`,`validateCreateTask returns a string when something is wrong, or null when the data is okay.`,`The controller converts that validation message into HTTP 400, which means bad request.`],hoverReadNext:`Try creating a task with no title, then read validateCreateTask() to see why it fails.`},{number:`8`,label:`Repository`,concept:`Data access function`,file:`src/repositories/taskRepository.ts`,previewCode:`create(payload)`,code:`export async function create(payload: CreateTaskPayload): Promise<Task> {
+  const now = new Date().toISOString();
+  const task: Task = {
+    id: randomUUID(),
+    title: payload.title.trim(),
+    description: payload.description?.trim() || "",
+    completed: false,
+    createdAt: now,
+    updatedAt: now
+  };
+
+  if (pool && usePostgres && !postgresUnavailable) {
+    await ensureTasksTable();
+    const result = await pool.query<TaskRow>(
+      \`INSERT INTO tasks (id, title, description, completed, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *\`,
+      [task.id, task.title, task.description, task.completed, task.createdAt, task.updatedAt]
+    );
+    return rowToTask(result.rows[0]);
+  }
+
+  const tasks = await readTasks();
+  tasks.push(task);
+  await writeTasks(tasks);
+  return task;
+}`,receives:`Validated task data from the controller.`,sends:`A saved task object from JSON storage or Postgres.`,hoverTitle:`Repository job`,hoverDetails:[`The repository hides storage details from the controller.`,`create(payload) adds backend-owned fields: id, completed, createdAt, and updatedAt.`,`Then it chooses the storage path: Postgres if configured, otherwise local JSON or memory fallback.`],hoverReadNext:`In taskRepository.ts, compare the Postgres INSERT branch with the local readTasks/writeTasks branch.`},{number:`9`,label:`Response`,concept:`Status code + JSON response`,file:`src/controllers/taskController.ts`,previewCode:`res.status(201).json({ data: task })`,code:`const task = await create(payload as CreateTaskPayload);
+
+return res.status(201).json({
+  data: task
+});
+
+// Example response body:
+// {
+//   "data": {
+//     "id": "uuid",
+//     "title": "Study API",
+//     "completed": false
+//   }
+// }`,receives:`The saved task returned by the repository.`,sends:`JSON back to the frontend.`,hoverTitle:`Response shape`,hoverDetails:[`status(201) tells the frontend the create action succeeded and created something.`,`json({ data: task }) sends the response body as JSON.`,`Wrapping the task in data is a common API pattern because later you can add metadata beside it.`],hoverReadNext:`Compare createTask() returning 201 with deleteTask() returning 204.`},{number:`10`,label:`React update`,concept:`State setter + re-render`,file:`src/client/src/App.tsx`,previewCode:`setTasks(...); setApiHistory(...);`,code:`async function loadTasks(filter = activeFilter) {
+  const query = filter === "all" ? "" : \`?completed=\${filter}\`;
+  const result = await apiRequest<TaskListResponse>(
+    "GET",
+    \`\${apiUrl}\${query}\`,
+    null,
+    "Automatic refresh"
+  );
+
+  setTasks(result.data);
+  setStatusMessage("Tasks loaded from the API.");
+}
+
+setApiHistory((history) => [call, ...history].slice(0, 8));`,receives:`The JSON response and latest task list.`,sends:`New state into React, which re-renders the visible UI.`,hoverTitle:`React after the API`,hoverDetails:[`React state is the memory that drives what you see on screen.`,`setTasks stores the latest tasks from the API. After state changes, React renders the task list again.`,`setApiHistory stores a study trace so you can see which API call just happened.`],hoverReadNext:`Read showLastCall(), loadTasks(), and the JSX that maps visibleTasks into list items.`}],oe=[{title:`Types`,file:`src/types/task.ts`,connection:`Shared idea of what a Task looks like. Types guide functions, payloads, and repository results.`},{title:`Imports / exports`,file:`Many files`,connection:`Exports make functions available. Imports connect files without placing all code in one giant file.`},{title:`Error handler`,file:`src/app.ts`,connection:`If a controller calls next(error), Express skips normal response logic and sends an error response.`}],se=[{title:`Function`,path:`src/controllers/taskController.ts`,code:`export async function createTask(req, res, next) {
   const task = await create(req.body);
   return res.status(201).json({ data: task });
 }`,explanation:`A function is a reusable block of code. createTask runs whenever the POST /api/tasks route calls it. It receives request tools as parameters, does work, then returns a response.`},{title:`Parameters`,path:`src/controllers/taskController.ts`,code:`function createTask(req, res, next)`,explanation:`Parameters are named inputs a function receives. req is the request from the frontend, res is the response object used to answer, and next passes errors to Express error middleware.`},{title:`Method`,path:`src/routes/taskRoutes.ts`,code:`router.post("/", createTask);`,explanation:`A method is a function that belongs to an object. post is a method on router. It means: when a POST request arrives at this route, run createTask.`},{title:`Callback`,path:`src/routes/taskRoutes.ts`,code:`router.get("/", listTasks);`,explanation:`A callback is a function passed into another function to be called later. listTasks is passed to router.get, but Express calls it later when a matching HTTP request arrives.`},{title:`Async / await`,path:`src/client/src/App.tsx`,code:`const response = await fetch(url, options);
@@ -91,7 +256,7 @@ export async function createTask(...) {}`,explanation:`export makes code availab
 
 fetch("/api/tasks", { method: "POST" });`,explanation:`POST is an HTTP method: the meaning of the request. router.post is a JavaScript method: a function on the Express router object that registers the POST endpoint.`}];function ce(){return(0,x.jsxs)(`main`,{className:`learning-shell`,children:[(0,x.jsxs)(`header`,{className:`learning-header`,children:[(0,x.jsxs)(`div`,{children:[(0,x.jsx)(`p`,{className:`eyebrow`,children:`CRUD Study`}),(0,x.jsx)(`h1`,{children:`Code Breakdown`}),(0,x.jsx)(`p`,{children:`A student-friendly guide to the backend/API terminology, the TypeScript files, and the full request flow from React to Supabase.`})]}),(0,x.jsxs)(`nav`,{className:`diagram-nav`,"aria-label":`Breakdown navigation`,children:[(0,x.jsx)(`a`,{href:`/`,children:`Back to app`}),(0,x.jsx)(`a`,{href:`/diagram.html`,children:`Diagram`})]})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`The Big Idea`}),(0,x.jsx)(`p`,{children:`Your React frontend is the visible part. The API is the contract it uses to ask the server for data work. Express is the server code that receives those requests. The repository is the data layer that actually reads or writes storage.`}),(0,x.jsx)(`pre`,{children:`React does not talk to Supabase directly in this project.
 
-React -> HTTP request -> Express route -> Controller -> Repository -> Storage`})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Numbered Learning Path`}),(0,x.jsx)(`p`,{children:`Study this project in this order. Each step gives you a goal, the files to open, what to learn, and a small example to connect the code to the running app.`}),(0,x.jsx)(`div`,{className:`path-list`,children:w.map(e=>(0,x.jsxs)(`article`,{className:`path-card`,children:[(0,x.jsx)(`div`,{className:`path-number`,children:e.step}),(0,x.jsxs)(`div`,{children:[(0,x.jsx)(`h3`,{children:e.title}),(0,x.jsx)(`strong`,{children:e.goal}),(0,x.jsx)(`p`,{children:e.learn}),(0,x.jsx)(`div`,{className:`path-files`,"aria-label":`${e.title} files`,children:e.files.map(e=>(0,x.jsx)(`code`,{children:e},e))}),(0,x.jsx)(`small`,{children:e.example})]})]},e.step))})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Full Create Request Flow`}),(0,x.jsx)(`pre`,{children:ie})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Code Pieces Connection Diagram`}),(0,x.jsx)(`p`,{children:`This map follows one create-task request and shows which coding idea appears at each step. Read each card as: this piece receives something, does one job, then sends something to the next piece.`}),(0,x.jsx)(`div`,{className:`code-map`,"aria-label":`Code pieces connection diagram`,children:ae.map((e,t)=>(0,x.jsxs)(`article`,{className:`code-map-node`,children:[(0,x.jsxs)(`div`,{className:`code-map-topline`,children:[(0,x.jsx)(`span`,{children:e.number}),(0,x.jsx)(`strong`,{children:e.label})]}),(0,x.jsx)(`h3`,{children:e.concept}),(0,x.jsx)(`code`,{children:e.file}),(0,x.jsx)(`pre`,{children:(0,x.jsx)(`code`,{children:e.code})}),(0,x.jsxs)(`p`,{children:[(0,x.jsx)(`strong`,{children:`Receives:`}),` `,e.receives]}),(0,x.jsxs)(`p`,{children:[(0,x.jsx)(`strong`,{children:`Sends:`}),` `,e.sends]}),t<ae.length-1&&(0,x.jsx)(`div`,{className:`code-map-arrow`,"aria-hidden":`true`,children:`Next`})]},e.number))}),(0,x.jsx)(`div`,{className:`support-map`,"aria-label":`Supporting code concepts`,children:oe.map(e=>(0,x.jsxs)(`article`,{className:`support-card`,children:[(0,x.jsx)(`h3`,{children:e.title}),(0,x.jsx)(`code`,{children:e.file}),(0,x.jsx)(`p`,{children:e.connection})]},e.title))})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Backend And API Terms`}),(0,x.jsx)(`div`,{className:`term-grid`,children:ne.map(e=>(0,x.jsxs)(`article`,{className:`term-card`,children:[(0,x.jsx)(`h3`,{children:e.term}),(0,x.jsx)(`strong`,{children:e.simple}),(0,x.jsx)(`p`,{children:e.detail})]},e.term))})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Coding Pieces Explained`}),(0,x.jsx)(`p`,{children:`This section explains the small coding building blocks you keep seeing: functions, methods, parameters, callbacks, objects, types, imports, async/await, and array methods.`}),(0,x.jsx)(`div`,{className:`code-piece-list`,children:se.map(e=>(0,x.jsxs)(`article`,{className:`code-piece-card`,children:[(0,x.jsxs)(`div`,{className:`code-piece-header`,children:[(0,x.jsx)(`h3`,{children:e.title}),(0,x.jsx)(`code`,{children:e.path})]}),(0,x.jsx)(`pre`,{children:(0,x.jsx)(`code`,{children:e.code})}),(0,x.jsx)(`p`,{children:e.explanation})]},e.title))})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Numbered File-By-File Reading Plan`}),(0,x.jsx)(`div`,{className:`file-list`,children:re.map(e=>(0,x.jsxs)(`article`,{className:`file-card`,children:[(0,x.jsxs)(`div`,{className:`file-card-header`,children:[(0,x.jsx)(`span`,{children:e.order}),(0,x.jsx)(`code`,{children:e.path})]}),(0,x.jsx)(`p`,{children:e.purpose}),(0,x.jsxs)(`small`,{children:[(0,x.jsx)(`strong`,{children:`Talks to:`}),` `,e.talksTo]}),(0,x.jsxs)(`small`,{children:[(0,x.jsx)(`strong`,{children:`Read for:`}),` `,e.readFor]}),(0,x.jsxs)(`small`,{children:[(0,x.jsx)(`strong`,{children:`Practice:`}),` `,e.exercise]})]},e.path))})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Advanced Frontend Concepts Used Here`}),(0,x.jsxs)(`div`,{className:`term-grid`,children:[(0,x.jsxs)(`article`,{className:`term-card`,children:[(0,x.jsx)(`h3`,{children:`Controlled form`}),(0,x.jsx)(`p`,{children:`React state owns the input values. When you type, onChange updates state. When state changes, React re-renders the input.`})]}),(0,x.jsxs)(`article`,{className:`term-card`,children:[(0,x.jsx)(`h3`,{children:`Async/await`}),(0,x.jsx)(`p`,{children:`The frontend waits for the API response before updating status messages and refreshing the task list.`})]}),(0,x.jsxs)(`article`,{className:`term-card`,children:[(0,x.jsx)(`h3`,{children:`Derived state`}),(0,x.jsx)(`p`,{children:`visibleTasks is calculated from tasks plus activeFilter. It is not separately saved in the database.`})]}),(0,x.jsxs)(`article`,{className:`term-card`,children:[(0,x.jsx)(`h3`,{children:`Type contracts`}),(0,x.jsx)(`p`,{children:`Task, ApiMethod, and payload types document what shapes the frontend expects while the backend has its own matching types.`})]})]})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Study Checklist`}),(0,x.jsxs)(`ol`,{className:`learning-list`,children:[(0,x.jsx)(`li`,{children:`Create a task and explain every file involved.`}),(0,x.jsx)(`li`,{children:`Open the Network tab and find POST /api/tasks.`}),(0,x.jsx)(`li`,{children:`Find the matching route in taskRoutes.ts.`}),(0,x.jsx)(`li`,{children:`Find where req.body is validated.`}),(0,x.jsx)(`li`,{children:`Find where the repository chooses Postgres or local JSON.`}),(0,x.jsx)(`li`,{children:`Explain why React should not directly write to the database in this architecture.`})]})]})]})}var le=[{key:`list`,label:`Read all`,endpoint:`GET /api/tasks`},{key:`create`,label:`Create`,endpoint:`POST /api/tasks`},{key:`update`,label:`Update`,endpoint:`PUT /api/tasks/:id`},{key:`delete`,label:`Delete`,endpoint:`DELETE /api/tasks/:id`}];function ue({currentLesson:e,lessonKey:t,setLessonKey:n,state:r}){return(0,x.jsxs)(`section`,{id:`study-guide`,className:`study-layout`,"aria-label":`Frontend learning guide`,children:[(0,x.jsxs)(`article`,{className:`study-panel wide`,children:[(0,x.jsx)(`div`,{className:`section-title`,children:(0,x.jsxs)(`div`,{children:[(0,x.jsx)(`h2`,{children:`What exactly is the API?`}),(0,x.jsx)(`p`,{children:`The API is the contract between your frontend and your backend.`})]})}),(0,x.jsxs)(`div`,{className:`api-explainer`,children:[(0,x.jsxs)(`section`,{children:[(0,x.jsx)(`h3`,{children:`Frontend view`}),(0,x.jsxs)(`p`,{children:[`Your React code does not open the database. It calls URLs like `,(0,x.jsx)(`code`,{children:`/api/tasks`}),` with `,(0,x.jsx)(`code`,{children:`fetch()`}),`.`]})]}),(0,x.jsxs)(`section`,{children:[(0,x.jsx)(`h3`,{children:`Backend view`}),(0,x.jsx)(`p`,{children:`Express receives those URLs, runs route/controller/repository code, and sends JSON back.`})]}),(0,x.jsxs)(`section`,{children:[(0,x.jsx)(`h3`,{children:`API contract`}),(0,x.jsx)(`p`,{children:`The contract says which method, URL, request body, status code, and response shape are allowed.`})]})]}),(0,x.jsx)(`pre`,{children:`POST /api/tasks
+React -> HTTP request -> Express route -> Controller -> Repository -> Storage`})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Numbered Learning Path`}),(0,x.jsx)(`p`,{children:`Study this project in this order. Each step gives you a goal, the files to open, what to learn, and a small example to connect the code to the running app.`}),(0,x.jsx)(`div`,{className:`path-list`,children:w.map(e=>(0,x.jsxs)(`article`,{className:`path-card`,children:[(0,x.jsx)(`div`,{className:`path-number`,children:e.step}),(0,x.jsxs)(`div`,{children:[(0,x.jsx)(`h3`,{children:e.title}),(0,x.jsx)(`strong`,{children:e.goal}),(0,x.jsx)(`p`,{children:e.learn}),(0,x.jsx)(`div`,{className:`path-files`,"aria-label":`${e.title} files`,children:e.files.map(e=>(0,x.jsx)(`code`,{children:e},e))}),(0,x.jsx)(`small`,{children:e.example})]})]},e.step))})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Full Create Request Flow`}),(0,x.jsx)(`pre`,{children:ie})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Code Pieces Connection Diagram`}),(0,x.jsx)(`p`,{children:`This map follows one create-task request and shows which coding idea appears at each step. Read each card as: this piece receives something, does one job, then sends something to the next piece.`}),(0,x.jsxs)(`div`,{className:`code-map-helper`,children:[(0,x.jsx)(`strong`,{children:`Study tip`}),(0,x.jsx)(`span`,{children:`Read one card at a time. Hover or focus a card to reveal the friendly explanation for the full code.`})]}),(0,x.jsx)(`div`,{className:`code-map`,"aria-label":`Code pieces connection diagram`,children:ae.map((e,t)=>(0,x.jsxs)(`article`,{className:`code-map-node`,tabIndex:0,children:[(0,x.jsxs)(`div`,{className:`code-map-topline`,children:[(0,x.jsx)(`span`,{children:e.number}),(0,x.jsx)(`strong`,{children:e.label})]}),(0,x.jsx)(`h3`,{children:e.concept}),(0,x.jsx)(`code`,{children:e.file}),(0,x.jsx)(`pre`,{children:(0,x.jsx)(`code`,{children:e.previewCode})}),(0,x.jsx)(`span`,{className:`hover-hint`,children:`Hover for code notes`}),(0,x.jsxs)(`p`,{children:[(0,x.jsx)(`strong`,{children:`Receives:`}),` `,e.receives]}),(0,x.jsxs)(`p`,{children:[(0,x.jsx)(`strong`,{children:`Sends:`}),` `,e.sends]}),(0,x.jsxs)(`aside`,{className:`code-hover-panel`,"aria-label":`${e.label} deeper code explanation`,children:[(0,x.jsx)(`strong`,{children:e.hoverTitle}),(0,x.jsx)(`pre`,{className:`hover-code`,children:(0,x.jsx)(`code`,{children:e.code})}),(0,x.jsx)(`ul`,{children:e.hoverDetails.map(e=>(0,x.jsx)(`li`,{children:e},e))}),(0,x.jsx)(`small`,{children:e.hoverReadNext})]}),t<ae.length-1&&(0,x.jsx)(`div`,{className:`code-map-arrow`,"aria-hidden":`true`,children:`Next`})]},e.number))}),(0,x.jsx)(`div`,{className:`support-map`,"aria-label":`Supporting code concepts`,children:oe.map(e=>(0,x.jsxs)(`article`,{className:`support-card`,children:[(0,x.jsx)(`h3`,{children:e.title}),(0,x.jsx)(`code`,{children:e.file}),(0,x.jsx)(`p`,{children:e.connection})]},e.title))})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Backend And API Terms`}),(0,x.jsx)(`div`,{className:`term-grid`,children:ne.map(e=>(0,x.jsxs)(`article`,{className:`term-card`,children:[(0,x.jsx)(`h3`,{children:e.term}),(0,x.jsx)(`strong`,{children:e.simple}),(0,x.jsx)(`p`,{children:e.detail})]},e.term))})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Coding Pieces Explained`}),(0,x.jsx)(`p`,{children:`This section explains the small coding building blocks you keep seeing: functions, methods, parameters, callbacks, objects, types, imports, async/await, and array methods.`}),(0,x.jsx)(`div`,{className:`code-piece-list`,children:se.map(e=>(0,x.jsxs)(`article`,{className:`code-piece-card`,children:[(0,x.jsxs)(`div`,{className:`code-piece-header`,children:[(0,x.jsx)(`h3`,{children:e.title}),(0,x.jsx)(`code`,{children:e.path})]}),(0,x.jsx)(`pre`,{children:(0,x.jsx)(`code`,{children:e.code})}),(0,x.jsx)(`p`,{children:e.explanation})]},e.title))})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Numbered File-By-File Reading Plan`}),(0,x.jsx)(`div`,{className:`file-list`,children:re.map(e=>(0,x.jsxs)(`article`,{className:`file-card`,children:[(0,x.jsxs)(`div`,{className:`file-card-header`,children:[(0,x.jsx)(`span`,{children:e.order}),(0,x.jsx)(`code`,{children:e.path})]}),(0,x.jsx)(`p`,{children:e.purpose}),(0,x.jsxs)(`small`,{children:[(0,x.jsx)(`strong`,{children:`Talks to:`}),` `,e.talksTo]}),(0,x.jsxs)(`small`,{children:[(0,x.jsx)(`strong`,{children:`Read for:`}),` `,e.readFor]}),(0,x.jsxs)(`small`,{children:[(0,x.jsx)(`strong`,{children:`Practice:`}),` `,e.exercise]})]},e.path))})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Advanced Frontend Concepts Used Here`}),(0,x.jsxs)(`div`,{className:`term-grid`,children:[(0,x.jsxs)(`article`,{className:`term-card`,children:[(0,x.jsx)(`h3`,{children:`Controlled form`}),(0,x.jsx)(`p`,{children:`React state owns the input values. When you type, onChange updates state. When state changes, React re-renders the input.`})]}),(0,x.jsxs)(`article`,{className:`term-card`,children:[(0,x.jsx)(`h3`,{children:`Async/await`}),(0,x.jsx)(`p`,{children:`The frontend waits for the API response before updating status messages and refreshing the task list.`})]}),(0,x.jsxs)(`article`,{className:`term-card`,children:[(0,x.jsx)(`h3`,{children:`Derived state`}),(0,x.jsx)(`p`,{children:`visibleTasks is calculated from tasks plus activeFilter. It is not separately saved in the database.`})]}),(0,x.jsxs)(`article`,{className:`term-card`,children:[(0,x.jsx)(`h3`,{children:`Type contracts`}),(0,x.jsx)(`p`,{children:`Task, ApiMethod, and payload types document what shapes the frontend expects while the backend has its own matching types.`})]})]})]}),(0,x.jsxs)(`section`,{className:`learning-panel`,children:[(0,x.jsx)(`h2`,{children:`Study Checklist`}),(0,x.jsxs)(`ol`,{className:`learning-list`,children:[(0,x.jsx)(`li`,{children:`Create a task and explain every file involved.`}),(0,x.jsx)(`li`,{children:`Open the Network tab and find POST /api/tasks.`}),(0,x.jsx)(`li`,{children:`Find the matching route in taskRoutes.ts.`}),(0,x.jsx)(`li`,{children:`Find where req.body is validated.`}),(0,x.jsx)(`li`,{children:`Find where the repository chooses Postgres or local JSON.`}),(0,x.jsx)(`li`,{children:`Explain why React should not directly write to the database in this architecture.`})]})]})]})}var le=[{key:`list`,label:`Read all`,endpoint:`GET /api/tasks`},{key:`create`,label:`Create`,endpoint:`POST /api/tasks`},{key:`update`,label:`Update`,endpoint:`PUT /api/tasks/:id`},{key:`delete`,label:`Delete`,endpoint:`DELETE /api/tasks/:id`}];function ue({currentLesson:e,lessonKey:t,setLessonKey:n,state:r}){return(0,x.jsxs)(`section`,{id:`study-guide`,className:`study-layout`,"aria-label":`Frontend learning guide`,children:[(0,x.jsxs)(`article`,{className:`study-panel wide`,children:[(0,x.jsx)(`div`,{className:`section-title`,children:(0,x.jsxs)(`div`,{children:[(0,x.jsx)(`h2`,{children:`What exactly is the API?`}),(0,x.jsx)(`p`,{children:`The API is the contract between your frontend and your backend.`})]})}),(0,x.jsxs)(`div`,{className:`api-explainer`,children:[(0,x.jsxs)(`section`,{children:[(0,x.jsx)(`h3`,{children:`Frontend view`}),(0,x.jsxs)(`p`,{children:[`Your React code does not open the database. It calls URLs like `,(0,x.jsx)(`code`,{children:`/api/tasks`}),` with `,(0,x.jsx)(`code`,{children:`fetch()`}),`.`]})]}),(0,x.jsxs)(`section`,{children:[(0,x.jsx)(`h3`,{children:`Backend view`}),(0,x.jsx)(`p`,{children:`Express receives those URLs, runs route/controller/repository code, and sends JSON back.`})]}),(0,x.jsxs)(`section`,{children:[(0,x.jsx)(`h3`,{children:`API contract`}),(0,x.jsx)(`p`,{children:`The contract says which method, URL, request body, status code, and response shape are allowed.`})]})]}),(0,x.jsx)(`pre`,{children:`POST /api/tasks
 Request body:
 {
   "title": "Study APIs",

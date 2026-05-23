@@ -228,90 +228,335 @@ const codeConnectionFlow = [
     label: "User event",
     concept: "Event handler function",
     file: "src/client/src/App.tsx",
-    code: "onSubmit={saveTask}",
+    previewCode: "onSubmit={saveTask}",
+    code: `<form id="task-form" className="editor" autoComplete="off" onSubmit={saveTask}>
+  <input
+    id="title"
+    name="title"
+    required
+    value={formState.title}
+    onChange={(event) => setFormState({ ...formState, title: event.target.value })}
+  />
+
+  <button className="primary-action" type="submit">
+    {formState.id ? "Save changes" : "Create task"}
+  </button>
+</form>`,
     receives: "A browser submit event from the form.",
-    sends: "Calls saveTask(), the frontend function that begins the create flow."
+    sends: "Calls saveTask(), the frontend function that begins the create flow.",
+    hoverTitle: "What this code means",
+    hoverDetails: [
+      "onSubmit is a React prop. It says: when this form is submitted, run this function.",
+      "{saveTask} passes the function itself. It does not run immediately. React runs it later after the user submits.",
+      "This is similar to a backend route callback: you give code to a system, and the system calls it at the right time."
+    ],
+    hoverReadNext: "In App.tsx, search for <form ... onSubmit={saveTask}> and then jump to async function saveTask(event)."
   },
   {
     number: "2",
     label: "Frontend function",
     concept: "async function + parameters",
     file: "src/client/src/App.tsx",
-    code: "saveTask() -> apiRequest('POST', '/api/tasks', payload)",
+    previewCode: "saveTask() -> apiRequest('POST', '/api/tasks', payload)",
+    code: `async function saveTask(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+
+  const isEditing = Boolean(formState.id);
+  const payload = {
+    title: formState.title,
+    description: formState.description,
+    ...(isEditing ? { completed: formState.completed } : {})
+  };
+
+  await apiRequest<TaskResponse>(
+    isEditing ? "PUT" : "POST",
+    isEditing ? \`\${apiUrl}/\${formState.id}\` : apiUrl,
+    payload,
+    isEditing ? "Save edit" : "Create task"
+  );
+
+  resetForm();
+  await loadTasks();
+}`,
     receives: "React state values from the form: title, description, and completed.",
-    sends: "Passes method, URL, and payload into the reusable API helper."
+    sends: "Passes method, URL, and payload into the reusable API helper.",
+    hoverTitle: "Why this function exists",
+    hoverDetails: [
+      "saveTask is the bridge between the visible form and the backend API.",
+      "'POST' tells the backend this is a create action. '/api/tasks' tells it which resource to create.",
+      "payload is a plain object built from React state. It becomes JSON before leaving the browser."
+    ],
+    hoverReadNext: "Read the payload object inside saveTask(), then read the apiRequest call right below it."
   },
   {
     number: "3",
     label: "Fetch helper",
     concept: "HTTP method + JSON body",
     file: "src/client/src/App.tsx",
-    code: "fetch('/api/tasks', { method: 'POST', body: JSON.stringify(payload) })",
+    previewCode: "fetch('/api/tasks', { method: 'POST', body: JSON.stringify(payload) })",
+    code: `async function apiRequest<T>(method: ApiMethod, url: string, body?: unknown, label = "User action") {
+  const options: RequestInit = {
+    method,
+    headers: {}
+  };
+
+  if (body) {
+    options.headers = { "Content-Type": "application/json" };
+    options.body = JSON.stringify(body);
+  }
+
+  showLastCall(method, url, body ?? null, label);
+
+  const response = await fetch(url, options);
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Request failed");
+  }
+
+  return result as T;
+}`,
     receives: "A JavaScript object payload from saveTask().",
-    sends: "An HTTP request to the backend API."
+    sends: "An HTTP request to the backend API.",
+    hoverTitle: "What fetch is doing",
+    hoverDetails: [
+      "fetch is the browser's built-in function for making HTTP requests.",
+      "JSON.stringify(payload) converts a JavaScript object into JSON text, because HTTP sends text/bytes, not live JS objects.",
+      "The Content-Type header tells Express: the body is JSON, so express.json() should parse it."
+    ],
+    hoverReadNext: "In apiRequest(), find RequestInit, headers, body, fetch(), response.json(), and response.ok."
   },
   {
     number: "4",
     label: "Express app",
     concept: "Middleware pipeline",
     file: "src/app.ts",
-    code: "app.use(express.json()); app.use('/api/tasks', taskRoutes);",
+    previewCode: "app.use(express.json()); app.use('/api/tasks', taskRoutes);",
+    code: `const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(morgan("dev"));
+app.use(express.static(clientBuildDirectory));
+
+app.get("/health", async (req, res, next) => {
+  const storage = await getStorageStatus();
+  return res.json({ status: "ok", storage: storage.mode });
+});
+
+app.use("/api/tasks", taskRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);`,
     receives: "The HTTP request from fetch().",
-    sends: "Parsed JSON on req.body and forwards /api/tasks to the router."
+    sends: "Parsed JSON on req.body and forwards /api/tasks to the router.",
+    hoverTitle: "Express pipeline",
+    hoverDetails: [
+      "app.use means: add this thing to the request pipeline.",
+      "express.json() runs before your controller and turns JSON text into req.body.",
+      "app.use('/api/tasks', taskRoutes) means every /api/tasks request enters taskRoutes.ts."
+    ],
+    hoverReadNext: "Read src/app.ts from top to bottom. The order matters because requests pass through it in order."
   },
   {
     number: "5",
     label: "Route",
     concept: "Router method + callback",
     file: "src/routes/taskRoutes.ts",
-    code: "router.post('/', createTask);",
+    previewCode: "router.post('/', createTask);",
+    code: `import { Router } from "express";
+import {
+  createTask,
+  deleteTask,
+  getTaskById,
+  listTasks,
+  updateTask
+} from "../controllers/taskController.js";
+
+const router = Router();
+
+router.get("/", listTasks);
+router.get("/:id", getTaskById);
+router.post("/", createTask);
+router.put("/:id", updateTask);
+router.delete("/:id", deleteTask);
+
+export default router;`,
     receives: "A POST request whose path matches /api/tasks.",
-    sends: "Calls createTask later as the callback for this request."
+    sends: "Calls createTask later as the callback for this request.",
+    hoverTitle: "Route as a traffic sign",
+    hoverDetails: [
+      "router.post is a JavaScript method on the Express router object.",
+      "'/' means the root of this router. Since app.ts mounted it at /api/tasks, the full path is POST /api/tasks.",
+      "createTask is a callback. Express saves it now and calls it later when a matching request arrives."
+    ],
+    hoverReadNext: "Write a small table: router line, full endpoint, controller function."
   },
   {
     number: "6",
     label: "Controller",
     concept: "req, res, next parameters",
     file: "src/controllers/taskController.ts",
-    code: "createTask(req, res, next)",
+    previewCode: "createTask(req, res, next)",
+    code: `export async function createTask(req: Request, res: Response, next: NextFunction) {
+  try {
+    const payload = req.body as Partial<CreateTaskPayload>;
+    const validationError = validateCreateTask(payload);
+
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
+    }
+
+    const task = await create(payload as CreateTaskPayload);
+
+    return res.status(201).json({ data: task });
+  } catch (error) {
+    return next(error);
+  }
+}`,
     receives: "req.body from Express and response tools from res.",
-    sends: "Valid data to the repository, or errors to next(error)."
+    sends: "Valid data to the repository, or errors to next(error).",
+    hoverTitle: "Controller parameters",
+    hoverDetails: [
+      "req means request. It contains the data coming in from the frontend.",
+      "res means response. It is how the controller answers the frontend.",
+      "next is used when something goes wrong. It sends the error to the error handler instead of crashing silently."
+    ],
+    hoverReadNext: "Read createTask() line by line: payload, validationError, create(), status(201), json()."
   },
   {
     number: "7",
     label: "Validator",
     concept: "Guard function",
     file: "src/validators/taskValidator.ts",
-    code: "validateCreateTask(req.body)",
+    previewCode: "validateCreateTask(req.body)",
+    code: `function isMissingText(value: unknown) {
+  return typeof value !== "string" || value.trim().length === 0;
+}
+
+export function validateCreateTask(payload: Partial<CreateTaskPayload>) {
+  if (isMissingText(payload.title)) {
+    return "Title is required";
+  }
+
+  if (payload.description !== undefined && typeof payload.description !== "string") {
+    return "Description must be a string";
+  }
+
+  return null;
+}`,
     receives: "Raw input from the frontend.",
-    sends: "Clean payload forward, or a 400-style error if input is invalid."
+    sends: "Clean payload forward, or a 400-style error if input is invalid.",
+    hoverTitle: "Why validation matters",
+    hoverDetails: [
+      "Frontend validation helps the user, but backend validation protects the data.",
+      "validateCreateTask returns a string when something is wrong, or null when the data is okay.",
+      "The controller converts that validation message into HTTP 400, which means bad request."
+    ],
+    hoverReadNext: "Try creating a task with no title, then read validateCreateTask() to see why it fails."
   },
   {
     number: "8",
     label: "Repository",
     concept: "Data access function",
     file: "src/repositories/taskRepository.ts",
-    code: "create(payload)",
+    previewCode: "create(payload)",
+    code: `export async function create(payload: CreateTaskPayload): Promise<Task> {
+  const now = new Date().toISOString();
+  const task: Task = {
+    id: randomUUID(),
+    title: payload.title.trim(),
+    description: payload.description?.trim() || "",
+    completed: false,
+    createdAt: now,
+    updatedAt: now
+  };
+
+  if (pool && usePostgres && !postgresUnavailable) {
+    await ensureTasksTable();
+    const result = await pool.query<TaskRow>(
+      \`INSERT INTO tasks (id, title, description, completed, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *\`,
+      [task.id, task.title, task.description, task.completed, task.createdAt, task.updatedAt]
+    );
+    return rowToTask(result.rows[0]);
+  }
+
+  const tasks = await readTasks();
+  tasks.push(task);
+  await writeTasks(tasks);
+  return task;
+}`,
     receives: "Validated task data from the controller.",
-    sends: "A saved task object from JSON storage or Postgres."
+    sends: "A saved task object from JSON storage or Postgres.",
+    hoverTitle: "Repository job",
+    hoverDetails: [
+      "The repository hides storage details from the controller.",
+      "create(payload) adds backend-owned fields: id, completed, createdAt, and updatedAt.",
+      "Then it chooses the storage path: Postgres if configured, otherwise local JSON or memory fallback."
+    ],
+    hoverReadNext: "In taskRepository.ts, compare the Postgres INSERT branch with the local readTasks/writeTasks branch."
   },
   {
     number: "9",
     label: "Response",
     concept: "Status code + JSON response",
     file: "src/controllers/taskController.ts",
-    code: "res.status(201).json({ data: task })",
+    previewCode: "res.status(201).json({ data: task })",
+    code: `const task = await create(payload as CreateTaskPayload);
+
+return res.status(201).json({
+  data: task
+});
+
+// Example response body:
+// {
+//   "data": {
+//     "id": "uuid",
+//     "title": "Study API",
+//     "completed": false
+//   }
+// }`,
     receives: "The saved task returned by the repository.",
-    sends: "JSON back to the frontend."
+    sends: "JSON back to the frontend.",
+    hoverTitle: "Response shape",
+    hoverDetails: [
+      "status(201) tells the frontend the create action succeeded and created something.",
+      "json({ data: task }) sends the response body as JSON.",
+      "Wrapping the task in data is a common API pattern because later you can add metadata beside it."
+    ],
+    hoverReadNext: "Compare createTask() returning 201 with deleteTask() returning 204."
   },
   {
     number: "10",
     label: "React update",
     concept: "State setter + re-render",
     file: "src/client/src/App.tsx",
-    code: "setTasks(...); setApiHistory(...);",
+    previewCode: "setTasks(...); setApiHistory(...);",
+    code: `async function loadTasks(filter = activeFilter) {
+  const query = filter === "all" ? "" : \`?completed=\${filter}\`;
+  const result = await apiRequest<TaskListResponse>(
+    "GET",
+    \`\${apiUrl}\${query}\`,
+    null,
+    "Automatic refresh"
+  );
+
+  setTasks(result.data);
+  setStatusMessage("Tasks loaded from the API.");
+}
+
+setApiHistory((history) => [call, ...history].slice(0, 8));`,
     receives: "The JSON response and latest task list.",
-    sends: "New state into React, which re-renders the visible UI."
+    sends: "New state into React, which re-renders the visible UI.",
+    hoverTitle: "React after the API",
+    hoverDetails: [
+      "React state is the memory that drives what you see on screen.",
+      "setTasks stores the latest tasks from the API. After state changes, React renders the task list again.",
+      "setApiHistory stores a study trace so you can see which API call just happened."
+    ],
+    hoverReadNext: "Read showLastCall(), loadTasks(), and the JSX that maps visibleTasks into list items."
   }
 ];
 
@@ -503,18 +748,33 @@ React -> HTTP request -> Express route -> Controller -> Repository -> Storage`}<
           This map follows one create-task request and shows which coding idea appears at each step. Read each card as:
           this piece receives something, does one job, then sends something to the next piece.
         </p>
+        <div className="code-map-helper">
+          <strong>Study tip</strong>
+          <span>Read one card at a time. Hover or focus a card to reveal the friendly explanation for the full code.</span>
+        </div>
         <div className="code-map" aria-label="Code pieces connection diagram">
           {codeConnectionFlow.map((node, index) => (
-            <article className="code-map-node" key={node.number}>
+            <article className="code-map-node" key={node.number} tabIndex={0}>
               <div className="code-map-topline">
                 <span>{node.number}</span>
                 <strong>{node.label}</strong>
               </div>
               <h3>{node.concept}</h3>
               <code>{node.file}</code>
-              <pre><code>{node.code}</code></pre>
+              <pre><code>{node.previewCode}</code></pre>
+              <span className="hover-hint">Hover for code notes</span>
               <p><strong>Receives:</strong> {node.receives}</p>
               <p><strong>Sends:</strong> {node.sends}</p>
+              <aside className="code-hover-panel" aria-label={`${node.label} deeper code explanation`}>
+                <strong>{node.hoverTitle}</strong>
+                <pre className="hover-code"><code>{node.code}</code></pre>
+                <ul>
+                  {node.hoverDetails.map((detail) => (
+                    <li key={detail}>{detail}</li>
+                  ))}
+                </ul>
+                <small>{node.hoverReadNext}</small>
+              </aside>
               {index < codeConnectionFlow.length - 1 && <div className="code-map-arrow" aria-hidden="true">Next</div>}
             </article>
           ))}
