@@ -8,10 +8,11 @@ When a client sends a request, the flow is:
 
 ```text
 Client
-  -> src/server.ts
-  -> src/app.ts
   -> src/client/index.html
   -> src/client/src/App.tsx
+  -> fetch("/api/tasks")
+  -> src/server.ts
+  -> src/app.ts
   -> src/routes/taskRoutes.ts
   -> src/controllers/taskController.ts
   -> src/validators/taskValidator.ts
@@ -38,13 +39,17 @@ The project is split by responsibility. This makes it easier to learn what depen
 
 ```text
 src/client/
-  index.html             What the browser displays
-  styles.css             How the browser page looks
-  App.tsx                 Browser behavior and fetch() calls
+  index.html             Vite HTML entry with the React root
+  src/main.tsx           Mounts React into the page
+  src/App.tsx            Browser behavior, views, and fetch() calls
+  src/components/        Study guide, diagram, and breakdown pages
+  src/styles.css         CSS entry that imports the app and diagram CSS
+  src/styles-app.css     Dashboard and learning page styles
+  src/styles-diagram.css Diagram page styles
 
 src/
   server.ts              Opens the HTTP port
-  App.tsx                 Creates the Express app
+  app.ts                 Creates the Express app
 
   routes/
     taskRoutes.ts        Maps URL + HTTP method to controller
@@ -120,7 +125,7 @@ npm start
 npm test
 ```
 
-`npm run dev` uses `nodemon`, which restarts the server when files change.
+`npm run dev` uses `tsx watch`, which restarts the TypeScript server when files change.
 
 ### `src/server.ts`
 
@@ -148,19 +153,19 @@ app.use("/api/tasks", taskRoutes);
 
 That line means every task route starts with `/api/tasks`.
 
-It also serves the frontend:
+It also serves the built React frontend:
 
 ```js
-app.use(express.static(publicDirectory));
+app.use(express.static(clientBuildDirectory));
 ```
 
-That means `src/client/index.html`, `src/client/src/styles-app.css`, and `src/client/src/App.tsx` are available in the browser.
+Vite builds `src/client/index.html`, `src/client/src/main.tsx`, `src/client/src/App.tsx`, and the CSS into `dist/client`.
 
 ### `src/client/index.html`
 
-Defines the visible page structure: form, task list, filters, and request log.
+Defines the React root element and loads the React entry file.
 
-HTML answers the question: "What elements exist on the page?"
+HTML answers the question: "Where does React mount?"
 
 ### `src/client/src/styles-app.css`
 
@@ -368,8 +373,8 @@ frontend delete button -> fetch DELETE -> route -> deleteTask controller -> repo
 
 1. Start with `src/server.ts`.
 2. Move to `src/app.ts` and understand middleware.
-3. Open `src/client/index.html` and find the form and task list.
-4. Open `src/client/src/App.tsx` and find `apiRequest()`.
+3. Open `src/client/index.html` and find the React root.
+4. Open `src/client/src/App.tsx` and find the form, task list, and `apiRequest()`.
 5. Read `src/routes/taskRoutes.ts` and memorize route mapping.
 6. Read one controller function at a time in `src/controllers/taskController.ts`.
 7. Follow each controller into `src/repositories/taskRepository.ts`.

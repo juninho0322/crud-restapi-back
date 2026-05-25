@@ -186,7 +186,7 @@ Study these lines:
 
 ```js
 app.use(express.json());
-app.use(express.static(publicDirectory));
+app.use(express.static(clientBuildDirectory));
 app.use("/api/tasks", taskRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);

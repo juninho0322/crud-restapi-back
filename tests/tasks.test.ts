@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
 
 import request from "supertest";
 
-import app from "../src/app.js";
+process.env.DATA_FILE_PATH = path.join(tmpdir(), `crud-study-tests-${process.pid}.json`);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const dataFile = path.resolve(__dirname, "../data/tasks.json");
+const { default: app } = await import("../src/app.js");
+
+const dataFile = process.env.DATA_FILE_PATH;
 
 async function resetData() {
   await mkdir(path.dirname(dataFile), { recursive: true });

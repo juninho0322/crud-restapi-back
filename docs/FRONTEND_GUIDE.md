@@ -11,7 +11,9 @@ src/client/
   src/App.tsx
   src/components/StudyGuide.tsx
   src/components/ArchitectureDiagram.tsx
+  src/components/CodeBreakdown.tsx
   src/types.ts
+  src/styles.css
   src/styles-app.css
   src/styles-diagram.css
 ```

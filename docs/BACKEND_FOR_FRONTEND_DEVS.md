@@ -63,12 +63,17 @@ Each layer has one job.
 Crud-study/
   src/client/
     index.html
-    styles.css
-    App.tsx
+    src/main.tsx
+    src/App.tsx
+    src/components/
+    src/styles.css
+    src/styles-app.css
+    src/styles-diagram.css
+    src/types.ts
 
   src/
     server.ts
-    App.tsx
+    app.ts
 
     routes/
       taskRoutes.ts
@@ -161,10 +166,12 @@ You submit the form in the browser.
 
 A route is like a click handler for URLs.
 
-Frontend:
+React frontend:
 
-```js
-button.addEventListener("click", doSomething);
+```tsx
+<form onSubmit={saveTask}>
+  ...
+</form>
 ```
 
 Backend:

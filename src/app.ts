@@ -3,15 +3,12 @@ import express, { type NextFunction, type Request, type Response } from "express
 import morgan from "morgan";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
 import { getStorageStatus } from "./repositories/taskRepository.js";
 import taskRoutes from "./routes/taskRoutes.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const clientBuildDirectory = path.resolve(process.cwd(), "dist/client");
 const clientAssetsDirectory = path.join(clientBuildDirectory, "assets");
 

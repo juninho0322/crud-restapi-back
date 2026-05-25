@@ -8,7 +8,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.server.json",
+    "clean": "rm -rf dist",
+    "build": "npm run clean && vite build && tsc -p tsconfig.server.json",
     "dev": "npm run build && tsx watch src/server.ts",
     "start": "node dist/server/src/server.js",
     "test": "node --import tsx --test tests/*.test.ts",
@@ -40,7 +41,6 @@
     "@types/react-dom": "^19.2.3",
     "@types/supertest": "^7.2.0",
     "@vitejs/plugin-react": "^6.0.2",
-    "nodemon": "^3.1.4",
     "supertest": "^7.0.0",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3",

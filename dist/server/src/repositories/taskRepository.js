@@ -1,11 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import pg from "pg";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const dataFile = path.resolve(__dirname, "../../data/tasks.json");
+const dataFile = path.resolve(process.env.DATA_FILE_PATH ?? path.join(process.cwd(), "data/tasks.json"));
 const databaseUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 const usePostgres = Boolean(databaseUrl);
 const useMemory = !usePostgres && Boolean(process.env.VERCEL);
