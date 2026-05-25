@@ -21,6 +21,18 @@ Start here:
 
 The source files include comments explaining what each part does and how the files talk to each other.
 
+## Why TypeScript files import `.js`
+
+You may see imports like this inside `.ts` files:
+
+```ts
+import type { Task } from "../types/task.js";
+```
+
+That is correct for this project. The source file is `src/types/task.ts`, but Node runs the compiled JavaScript file from `dist/server/src/types/task.js`. Because the project uses `"type": "module"` and TypeScript `NodeNext`, imports are written with the runtime `.js` extension even while you edit `.ts` files.
+
+Study/edit the `.ts` file. The matching `.js` file is generated during `npm run build`.
+
 ## Setup
 
 ```bash

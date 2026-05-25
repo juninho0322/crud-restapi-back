@@ -55,6 +55,204 @@ const backendTerms = [
   }
 ];
 
+const projectAtlas = [
+  {
+    area: "Frontend source",
+    path: "src/client/",
+    purpose: "The React + TypeScript app you see in the browser.",
+    study:
+      "Start with src/client/src/App.tsx. That file owns the form, task list, fetch calls, API history, and page switching for /diagram.html and /breakdown.",
+    snippet: `src/client/index.html
+src/client/src/main.tsx
+src/client/src/App.tsx
+src/client/src/components/`
+  },
+  {
+    area: "Backend source",
+    path: "src/",
+    purpose: "The Express REST API source code.",
+    study:
+      "Read src/app.ts first, then routes, controllers, validators, and repository. This is the backend path every API request follows.",
+    snippet: `src/app.ts
+src/routes/taskRoutes.ts
+src/controllers/taskController.ts
+src/validators/taskValidator.ts
+src/repositories/taskRepository.ts`
+  },
+  {
+    area: "Vercel entry",
+    path: "api/index.ts",
+    purpose: "The serverless entry point Vercel uses in deployment.",
+    study:
+      "This file imports the same Express app from src/app.ts. That means local and deployed API behavior share the same backend code.",
+    snippet: `import app from "../src/app.js";
+
+export default app;`
+  },
+  {
+    area: "Local data",
+    path: "data/tasks.json",
+    purpose: "The local development storage file when no Postgres URL is configured.",
+    study:
+      "This is useful for learning because you can create a task in the UI and then inspect the JSON object that was saved.",
+    snippet: `[
+  {
+    "id": "uuid",
+    "title": "Study CRUD",
+    "completed": false
+  }
+]`
+  },
+  {
+    area: "Generated build",
+    path: "dist/",
+    purpose: "Machine-generated output from npm run build.",
+    study:
+      "Do not study or edit this first. dist/client is the built React app. dist/server is compiled JavaScript for Node/Vercel.",
+    snippet: `src/controllers/taskController.ts
+  -> npm run build
+  -> dist/server/src/controllers/taskController.js`
+  },
+  {
+    area: "Tests",
+    path: "tests/tasks.test.ts",
+    purpose: "Automated API checks for create, list, update, delete, and validation.",
+    study:
+      "Tests use a temporary data file, so running npm test does not erase your real data/tasks.json.",
+    snippet: `process.env.DATA_FILE_PATH = path.join(tmpdir(), "crud-study-tests...");
+
+await request(app).post("/api/tasks").send({ title: "Study CRUD" });`
+  }
+];
+
+const apiContracts = [
+  {
+    method: "GET",
+    endpoint: "/api/tasks",
+    frontend: "loadTasks()",
+    route: "router.get('/', listTasks)",
+    controller: "listTasks(req, res, next)",
+    repository: "findAll(filters)",
+    response: `{ "count": 2, "data": [task, task] }`
+  },
+  {
+    method: "GET",
+    endpoint: "/api/tasks/:id",
+    frontend: "Raw API or future detail view",
+    route: "router.get('/:id', getTaskById)",
+    controller: "getTaskById(req, res, next)",
+    repository: "findById(id)",
+    response: `{ "data": task } or { "message": "Task not found" }`
+  },
+  {
+    method: "POST",
+    endpoint: "/api/tasks",
+    frontend: "saveTask() when creating",
+    route: "router.post('/', createTask)",
+    controller: "createTask(req, res, next)",
+    repository: "create(payload)",
+    response: `{ "data": createdTask }`
+  },
+  {
+    method: "PUT",
+    endpoint: "/api/tasks/:id",
+    frontend: "saveTask() when editing, toggleTask() when completing",
+    route: "router.put('/:id', updateTask)",
+    controller: "updateTask(req, res, next)",
+    repository: "update(id, payload)",
+    response: `{ "data": updatedTask }`
+  },
+  {
+    method: "DELETE",
+    endpoint: "/api/tasks/:id",
+    frontend: "deleteTask(id)",
+    route: "router.delete('/:id', deleteTask)",
+    controller: "deleteTask(req, res, next)",
+    repository: "remove(id)",
+    response: "204 No Content"
+  }
+];
+
+const importantScripts = [
+  {
+    command: "npm run dev",
+    meaning: "Builds the app, then starts the TypeScript server with watch mode.",
+    when: "Use while studying and changing code."
+  },
+  {
+    command: "npm run build",
+    meaning: "Deletes dist, builds React into dist/client, and compiles backend TypeScript into dist/server.",
+    when: "Use before deployment or when checking production output."
+  },
+  {
+    command: "npm start",
+    meaning: "Runs the already-built JavaScript server from dist/server/src/server.js.",
+    when: "Use after npm run build to run the production-style version locally."
+  },
+  {
+    command: "npm test",
+    meaning: "Runs API tests against Express using supertest.",
+    when: "Use after backend changes to prove CRUD behavior still works."
+  },
+  {
+    command: "npm run typecheck",
+    meaning: "Checks TypeScript types without building files.",
+    when: "Use after changing TypeScript types, imports, controllers, or frontend state."
+  }
+];
+
+const conceptDeepDive = [
+  {
+    concept: "Why imports say .js inside .ts files",
+    path: "src/repositories/taskRepository.ts -> ../types/task.js",
+    snippet: `import type { Task } from "../types/task.js";`,
+    explanation:
+      "You edit task.ts, but Node runs compiled task.js. Because the project uses type: module and TypeScript NodeNext, source imports use the runtime .js extension."
+  },
+  {
+    concept: "Source vs generated code",
+    path: "src/ vs dist/",
+    snippet: `edit: src/controllers/taskController.ts
+generated: dist/server/src/controllers/taskController.js`,
+    explanation:
+      "The duplicate-looking folders are expected after build. Study src first. dist is the compiled copy used by Node and Vercel."
+  },
+  {
+    concept: "Request body",
+    path: "src/app.ts and src/controllers/taskController.ts",
+    snippet: `app.use(express.json());
+
+const payload = req.body as Partial<CreateTaskPayload>;`,
+    explanation:
+      "fetch sends JSON text. express.json() parses it. The controller reads it from req.body and validates it before saving."
+  },
+  {
+    concept: "Repository pattern",
+    path: "src/repositories/taskRepository.ts",
+    snippet: `const task = await create(payload as CreateTaskPayload);`,
+    explanation:
+      "Controllers do not know if storage is JSON, memory, or Postgres. They ask the repository to do data work."
+  },
+  {
+    concept: "Type contracts",
+    path: "src/types/task.ts and src/client/src/types.ts",
+    snippet: `export type Task = {
+  id: string;
+  title: string;
+  completed: boolean;
+};`,
+    explanation:
+      "Types document the shape of data and help TypeScript catch mistakes before the app runs."
+  },
+  {
+    concept: "Vercel and Supabase",
+    path: "api/index.ts, vercel.json, .env.example",
+    snippet: `const databaseUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;`,
+    explanation:
+      "On Vercel, the API uses the same Express app. If DATABASE_URL or POSTGRES_URL exists, the repository uses Supabase Postgres."
+  }
+];
+
 const fileWalkthrough = [
   {
     order: 1,
@@ -709,6 +907,94 @@ export function CodeBreakdown() {
         <pre>{`React does not talk to Supabase directly in this project.
 
 React -> HTTP request -> Express route -> Controller -> Repository -> Storage`}</pre>
+      </section>
+
+      <section className="learning-panel">
+        <h2>Project Atlas</h2>
+        <p>
+          Use this section to understand what every main folder is for. The important rule is: study and edit source files first;
+          treat generated files as output.
+        </p>
+        <div className="atlas-grid">
+          {projectAtlas.map((item) => (
+            <article className="atlas-card" key={item.path}>
+              <div className="atlas-card-header">
+                <h3>{item.area}</h3>
+                <code>{item.path}</code>
+              </div>
+              <p>{item.purpose}</p>
+              <small>{item.study}</small>
+              <pre><code>{item.snippet}</code></pre>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="learning-panel">
+        <h2>API Contract Table</h2>
+        <p>
+          This table connects what the frontend calls to the exact route, controller, repository function, and response shape.
+        </p>
+        <div className="contract-list">
+          {apiContracts.map((item) => (
+            <article className="contract-card" key={`${item.method} ${item.endpoint}`}>
+              <div className="contract-method">
+                <span>{item.method}</span>
+                <code>{item.endpoint}</code>
+              </div>
+              <dl>
+                <div>
+                  <dt>Frontend</dt>
+                  <dd>{item.frontend}</dd>
+                </div>
+                <div>
+                  <dt>Route</dt>
+                  <dd>{item.route}</dd>
+                </div>
+                <div>
+                  <dt>Controller</dt>
+                  <dd>{item.controller}</dd>
+                </div>
+                <div>
+                  <dt>Repository</dt>
+                  <dd>{item.repository}</dd>
+                </div>
+                <div>
+                  <dt>Response</dt>
+                  <dd>{item.response}</dd>
+                </div>
+              </dl>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="learning-panel">
+        <h2>Scripts And Concepts</h2>
+        <p>
+          These are the commands you run in the terminal and the project concepts that usually cause confusion while learning.
+        </p>
+        <div className="script-grid">
+          {importantScripts.map((item) => (
+            <article className="script-card" key={item.command}>
+              <code>{item.command}</code>
+              <p>{item.meaning}</p>
+              <small>{item.when}</small>
+            </article>
+          ))}
+        </div>
+        <div className="concept-list">
+          {conceptDeepDive.map((item) => (
+            <article className="concept-card" key={item.concept}>
+              <div className="concept-card-header">
+                <h3>{item.concept}</h3>
+                <code>{item.path}</code>
+              </div>
+              <pre><code>{item.snippet}</code></pre>
+              <p>{item.explanation}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="learning-panel">
