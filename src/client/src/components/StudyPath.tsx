@@ -277,22 +277,257 @@ export default app;`
 ];
 
 const requestTrace = [
-  "User types a task title in React.",
-  "React stores the text in formState.",
-  "The form submit runs saveTask.",
-  "saveTask builds a payload object.",
-  "apiRequest sends POST /api/tasks with JSON.",
-  "Express receives the request in src/app.ts.",
-  "express.json() turns JSON into req.body.",
-  "taskRoutes sends POST / to createTask.",
-  "createTask validates req.body.",
-  "createTask calls repository create(payload).",
-  "The repository saves to Postgres or data/tasks.json.",
-  "The controller returns status 201 and { data: task }.",
-  "React calls loadTasks.",
-  "loadTasks sends GET /api/tasks.",
-  "setTasks stores the returned list.",
-  "React re-renders the task list on screen."
+  {
+    step: "1",
+    title: "User types a task title",
+    path: "src/client/src/App.tsx",
+    code: `const [formState, setFormState] = useState({
+  id: "",
+  title: "",
+  description: "",
+  completed: false
+});`,
+    explanation:
+      "useState creates React memory. formState is the current value. setFormState is the function used to change that value. The title starts as an empty string because the form starts empty.",
+    sends: "The title value becomes available to the input field."
+  },
+  {
+    step: "2",
+    title: "React stores the input value",
+    path: "src/client/src/App.tsx",
+    code: `<input
+  value={formState.title}
+  onChange={(event) => setFormState({ ...formState, title: event.target.value })}
+/>`,
+    explanation:
+      "value makes this a controlled input, meaning React state controls what appears in the input. onChange runs every time you type. event.target.value is the latest text from the browser input. The spread operator keeps the old form fields and only replaces title.",
+    sends: "formState.title now contains the text the user typed."
+  },
+  {
+    step: "3",
+    title: "The form submit runs saveTask",
+    path: "src/client/src/App.tsx",
+    code: `<form className="editor" autoComplete="off" onSubmit={saveTask}>
+  ...
+</form>`,
+    explanation:
+      "onSubmit is an event prop. {saveTask} passes the function to React. It does not run immediately. React calls saveTask later when the user presses the submit button or hits Enter inside the form.",
+    sends: "React gives saveTask a submit event object."
+  },
+  {
+    step: "4",
+    title: "saveTask stops the page reload",
+    path: "src/client/src/App.tsx",
+    code: `async function saveTask(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+  ...
+}`,
+    explanation:
+      "Browsers normally reload the page when a form submits. event.preventDefault() cancels that default behavior so React can send an API request without refreshing the whole app.",
+    sends: "The function can continue building the API request."
+  },
+  {
+    step: "5",
+    title: "saveTask builds the payload",
+    path: "src/client/src/App.tsx",
+    code: `const payload = {
+  title: formState.title,
+  description: formState.description,
+  ...(isEditing ? { completed: formState.completed } : {})
+};`,
+    explanation:
+      "payload is the data object sent to the backend. title and description come from React state. The ...(isEditing ? ... : {}) part conditionally adds completed only when editing an existing task.",
+    sends: "A JavaScript object ready to become JSON."
+  },
+  {
+    step: "6",
+    title: "saveTask chooses POST or PUT",
+    path: "src/client/src/App.tsx",
+    code: `const isEditing = Boolean(formState.id);
+
+await apiRequest<TaskResponse>(
+  isEditing ? "PUT" : "POST",
+  isEditing ? \`\${apiUrl}/\${formState.id}\` : apiUrl,
+  payload,
+  isEditing ? "Save edit" : "Create task"
+);`,
+    explanation:
+      "Boolean(formState.id) checks if there is an id. No id means this is a new task, so the method is POST and the URL is /api/tasks. Existing id means edit, so the method is PUT and the URL includes /:id.",
+    sends: "apiRequest receives method, URL, body, and a label for the API history panel."
+  },
+  {
+    step: "7",
+    title: "apiRequest prepares fetch options",
+    path: "src/client/src/App.tsx",
+    code: `const options: RequestInit = {
+  method,
+  headers: {}
+};
+
+if (body) {
+  options.headers = { "Content-Type": "application/json" };
+  options.body = JSON.stringify(body);
+}`,
+    explanation:
+      "RequestInit is the TypeScript type for fetch options. method becomes POST. Content-Type tells Express the body is JSON. JSON.stringify converts the JavaScript object into JSON text because HTTP cannot send live JavaScript objects.",
+    sends: "fetch receives a URL plus options containing method, headers, and body."
+  },
+  {
+    step: "8",
+    title: "fetch sends the HTTP request",
+    path: "src/client/src/App.tsx",
+    code: `const response = await fetch(url, options);
+const result = await response.json();`,
+    explanation:
+      "fetch is the browser API for making HTTP requests. await pauses this async function until the server responds. response.json() reads the JSON response body and turns it back into a JavaScript object.",
+    sends: "The request leaves the frontend and reaches the Express backend."
+  },
+  {
+    step: "9",
+    title: "Express receives and parses JSON",
+    path: "src/app.ts",
+    code: `const app = express();
+
+app.use(express.json());`,
+    explanation:
+      "express() creates the backend app. app.use adds middleware to the request pipeline. express.json() looks at JSON requests and creates req.body for controllers to read.",
+    sends: "The parsed body is attached to req.body."
+  },
+  {
+    step: "10",
+    title: "Express sends /api/tasks to the task router",
+    path: "src/app.ts",
+    code: `app.use("/api/tasks", taskRoutes);`,
+    explanation:
+      "This mounts the router. Any request starting with /api/tasks is handed to taskRoutes. The router then only has to care about the remaining part of the URL.",
+    sends: "POST /api/tasks becomes POST / inside taskRoutes.ts."
+  },
+  {
+    step: "11",
+    title: "The router chooses createTask",
+    path: "src/routes/taskRoutes.ts",
+    code: `router.post("/", createTask);`,
+    explanation:
+      "router.post is an Express router method. '/' means the root of this router. Because app.ts mounted the router at /api/tasks, this line handles the full endpoint POST /api/tasks. createTask is a callback Express runs when the request matches.",
+    sends: "Express calls createTask(req, res, next)."
+  },
+  {
+    step: "12",
+    title: "The controller reads req.body",
+    path: "src/controllers/taskController.ts",
+    code: `export async function createTask(req: Request, res: Response, next: NextFunction) {
+  try {
+    const payload = req.body as Partial<CreateTaskPayload>;
+    ...
+  } catch (error) {
+    return next(error);
+  }
+}`,
+    explanation:
+      "The controller is the HTTP decision maker. req is what came from the frontend. res is how the backend replies. next is how the controller passes unexpected errors to the Express error handler.",
+    sends: "payload is passed into validation."
+  },
+  {
+    step: "13",
+    title: "The validator checks the input",
+    path: "src/validators/taskValidator.ts",
+    code: `export function validateCreateTask(payload: Partial<CreateTaskPayload>) {
+  if (isMissingText(payload.title)) {
+    return "Title is required";
+  }
+
+  return null;
+}`,
+    explanation:
+      "Validation protects the backend. Partial<CreateTaskPayload> means the object might be incomplete, so the validator must check it. Returning a string means invalid. Returning null means the data is acceptable.",
+    sends: "Valid data continues. Invalid data becomes HTTP 400."
+  },
+  {
+    step: "14",
+    title: "The controller calls the repository",
+    path: "src/controllers/taskController.ts",
+    code: `const task = await create(payload as CreateTaskPayload);
+
+return res.status(201).json({ data: task });`,
+    explanation:
+      "After validation passes, the controller trusts the payload as CreateTaskPayload. It calls create in the repository. status(201) means created. json({ data: task }) sends the saved task back to the frontend.",
+    sends: "The repository receives clean task data."
+  },
+  {
+    step: "15",
+    title: "The repository creates the full task object",
+    path: "src/repositories/taskRepository.ts",
+    code: `const now = new Date().toISOString();
+const task: Task = {
+  id: randomUUID(),
+  title: payload.title.trim(),
+  description: payload.description?.trim() || "",
+  completed: false,
+  createdAt: now,
+  updatedAt: now
+};`,
+    explanation:
+      "The frontend only sends title and description. The backend owns id, completed, createdAt, and updatedAt. randomUUID creates a unique id. trim removes accidental spaces.",
+    sends: "A complete Task object is ready to save."
+  },
+  {
+    step: "16",
+    title: "The repository saves to Postgres or local JSON",
+    path: "src/repositories/taskRepository.ts",
+    code: `if (pool && usePostgres && !postgresUnavailable) {
+  await ensureTasksTable();
+  const result = await pool.query(...);
+  return rowToTask(result.rows[0]);
+}
+
+const tasks = await readTasks();
+tasks.push(task);
+await writeTasks(tasks);
+return task;`,
+    explanation:
+      "This is the storage decision. If Postgres is configured, the task is inserted into the database. Otherwise the local learning version reads data/tasks.json, pushes the new task into the array, writes the file, and returns the task.",
+    sends: "The saved task goes back to the controller."
+  },
+  {
+    step: "17",
+    title: "React refreshes the list",
+    path: "src/client/src/App.tsx",
+    code: `resetForm();
+await loadTasks();
+setStatusMessage("Task created.");`,
+    explanation:
+      "After create succeeds, the form is cleared. loadTasks asks the API for the latest list. The status message gives the user feedback.",
+    sends: "loadTasks sends a fresh GET /api/tasks request."
+  },
+  {
+    step: "18",
+    title: "loadTasks stores the returned tasks",
+    path: "src/client/src/App.tsx",
+    code: `const result = await apiRequest<TaskListResponse>(
+  "GET",
+  \`\${apiUrl}\${query}\`,
+  null,
+  "Automatic refresh"
+);
+
+setTasks(result.data);`,
+    explanation:
+      "TaskListResponse tells TypeScript the expected shape: { count, data }. result.data is the array of tasks. setTasks updates React state.",
+    sends: "React has new state, so the UI re-renders."
+  },
+  {
+    step: "19",
+    title: "React redraws the visible list",
+    path: "src/client/src/App.tsx",
+    code: `{visibleTasks.map((task) => (
+  <li className="task-item" key={task.id}>
+    <p className="task-title">{task.title}</p>
+  </li>
+))}`,
+    explanation:
+      "map loops over the task array and returns JSX for each task. key={task.id} helps React track each list item. The saved task is now visible on screen.",
+    sends: "The create flow is finished from browser to backend to storage and back."
+  }
 ];
 
 const endpoints = [
@@ -344,13 +579,25 @@ export function StudyPath() {
       <section className="learning-panel">
         <h2>Trace The Create Flow From Start To Finish</h2>
         <p>
-          Read this list while creating one task in the app. This is the exact path your data travels.
+          Read these cards while creating one task in the app. Each card shows the exact code piece, the file path, what it means,
+          and what that step passes to the next layer.
         </p>
-        <ol className="trace-list">
-          {requestTrace.map((step) => (
-            <li key={step}>{step}</li>
+        <div className="trace-card-list">
+          {requestTrace.map((item) => (
+            <article className="trace-card" key={item.step}>
+              <div className="trace-card-number">{item.step}</div>
+              <div className="trace-card-body">
+                <div className="trace-card-header">
+                  <h3>{item.title}</h3>
+                  <code>{item.path}</code>
+                </div>
+                <pre><code>{item.code}</code></pre>
+                <p>{item.explanation}</p>
+                <small><strong>Passes next:</strong> {item.sends}</small>
+              </div>
+            </article>
           ))}
-        </ol>
+        </div>
       </section>
 
       <section className="learning-panel">
