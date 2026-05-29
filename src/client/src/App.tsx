@@ -4,6 +4,7 @@ import type { ApiHistoryItem, ApiMethod, FilterValue, LessonKey, Task } from "./
 import { ArchitectureDiagram } from "./components/ArchitectureDiagram.js";
 import { CodeBreakdown } from "./components/CodeBreakdown.js";
 import { StudyGuide } from "./components/StudyGuide.js";
+import { StudyPath } from "./components/StudyPath.js";
 
 const apiUrl = "/api/tasks";
 
@@ -108,6 +109,10 @@ function isDiagramPage() {
 
 function isBreakdownPage() {
   return window.location.pathname === "/breakdown";
+}
+
+function isStudyPage() {
+  return window.location.pathname === "/study";
 }
 
 export default function App() {
@@ -290,6 +295,10 @@ export default function App() {
     return <CodeBreakdown />;
   }
 
+  if (isStudyPage()) {
+    return <StudyPath />;
+  }
+
   return (
     <main className="app-shell">
       <section className="workspace">
@@ -307,6 +316,9 @@ export default function App() {
             </a>
             <a className="docs-link" href="/breakdown">
               Code breakdown
+            </a>
+            <a className="docs-link" href="/study">
+              Complete study path
             </a>
             <a className="docs-link" href="#study-guide">
               Study guide

@@ -253,6 +253,117 @@ const payload = req.body as Partial<CreateTaskPayload>;`,
   }
 ];
 
+const goldenPath = [
+  {
+    step: "1",
+    title: "You submit the form",
+    file: "src/client/src/App.tsx",
+    lookFor: "<form ... onSubmit={saveTask}>",
+    code: `<form className="editor" onSubmit={saveTask}>
+  <input value={formState.title} onChange={...} />
+  <button type="submit">Create task</button>
+</form>`,
+    plainEnglish:
+      "This is where the journey starts. The browser sees a form submit, React catches it, and React runs saveTask.",
+    next: "Stay in App.tsx and search for saveTask."
+  },
+  {
+    step: "2",
+    title: "React builds the data",
+    file: "src/client/src/App.tsx",
+    lookFor: "async function saveTask(event)",
+    code: `const payload = {
+  title: formState.title,
+  description: formState.description
+};`,
+    plainEnglish:
+      "payload is the object the frontend wants to send to the API. It is built from the current React form state.",
+    next: "Inside saveTask, find the apiRequest(...) call."
+  },
+  {
+    step: "3",
+    title: "React calls the API",
+    file: "src/client/src/App.tsx",
+    lookFor: "fetch(url, options)",
+    code: `await apiRequest(
+  "POST",
+  "/api/tasks",
+  payload,
+  "Create task"
+);`,
+    plainEnglish:
+      "POST means create. /api/tasks is the backend endpoint. JSON.stringify turns the JavaScript object into JSON text for HTTP.",
+    next: "Jump to src/app.ts, because the request has now left React."
+  },
+  {
+    step: "4",
+    title: "Express receives the request",
+    file: "src/app.ts",
+    lookFor: "app.use('/api/tasks', taskRoutes)",
+    code: `app.use(express.json());
+app.use("/api/tasks", taskRoutes);`,
+    plainEnglish:
+      "express.json() reads the JSON body. app.use('/api/tasks', taskRoutes) sends this request into the task router.",
+    next: "Open src/routes/taskRoutes.ts."
+  },
+  {
+    step: "5",
+    title: "The router chooses the controller",
+    file: "src/routes/taskRoutes.ts",
+    lookFor: "router.post('/', createTask)",
+    code: `router.post("/", createTask);`,
+    plainEnglish:
+      "This line means: when a POST request arrives at /api/tasks, run the createTask controller.",
+    next: "Open src/controllers/taskController.ts and find createTask."
+  },
+  {
+    step: "6",
+    title: "The controller validates and saves",
+    file: "src/controllers/taskController.ts",
+    lookFor: "export async function createTask",
+    code: `const payload = req.body;
+const validationError = validateCreateTask(payload);
+const task = await create(payload);
+
+return res.status(201).json({ data: task });`,
+    plainEnglish:
+      "req.body is what React sent. The controller checks it, asks the repository to save it, then sends JSON back to the frontend.",
+    next: "Open src/repositories/taskRepository.ts and find create."
+  },
+  {
+    step: "7",
+    title: "The repository writes to storage",
+    file: "src/repositories/taskRepository.ts",
+    lookFor: "export async function create(payload)",
+    code: `const task = {
+  id: randomUUID(),
+  title: payload.title.trim(),
+  completed: false,
+  createdAt: now,
+  updatedAt: now
+};
+
+tasks.push(task);
+await writeTasks(tasks);`,
+    plainEnglish:
+      "The repository adds backend-owned fields like id and dates. Then it saves the task to Postgres or to the local JSON file.",
+    next: "Go back to createTask in the controller."
+  },
+  {
+    step: "8",
+    title: "The response returns to React",
+    file: "src/client/src/App.tsx",
+    lookFor: "await loadTasks()",
+    code: `resetForm();
+await loadTasks();
+
+setTasks(result.data);`,
+    plainEnglish:
+      "After the API succeeds, React refreshes the task list. setTasks updates state, and React redraws the screen with the saved task.",
+    next: "Create another task in the app and follow these same eight stops again."
+  }
+];
+
 const fileWalkthrough = [
   {
     order: 1,
@@ -895,6 +1006,7 @@ export function CodeBreakdown() {
         <nav className="diagram-nav" aria-label="Breakdown navigation">
           <a href="/">Back to app</a>
           <a href="/diagram.html">Diagram</a>
+          <a href="/study">Complete study path</a>
         </nav>
       </header>
 
@@ -907,6 +1019,31 @@ export function CodeBreakdown() {
         <pre>{`React does not talk to Supabase directly in this project.
 
 React -> HTTP request -> Express route -> Controller -> Repository -> Storage`}</pre>
+      </section>
+
+      <section className="learning-panel golden-path-panel">
+        <h2>Start Here: Trace One Create Task Request</h2>
+        <p>
+          This is the simplest path through the whole project. Follow these eight stops in order and you will understand what talks to what:
+          React form, API call, Express app, route, controller, repository, storage, response, and React state.
+        </p>
+        <div className="golden-path">
+          {goldenPath.map((item) => (
+            <article className="golden-step" key={item.step}>
+              <div className="golden-step-number">{item.step}</div>
+              <div className="golden-step-body">
+                <div className="golden-step-header">
+                  <h3>{item.title}</h3>
+                  <code>{item.file}</code>
+                </div>
+                <small><strong>Search for:</strong> {item.lookFor}</small>
+                <pre><code>{item.code}</code></pre>
+                <p>{item.plainEnglish}</p>
+                <small><strong>Next stop:</strong> {item.next}</small>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="learning-panel">

@@ -419,6 +419,7 @@ export function ArchitectureDiagram() {
         <nav className="diagram-nav" aria-label="Diagram navigation">
           <a href="/">Back to app</a>
           <a href="/breakdown">Code breakdown</a>
+          <a href="/study">Complete study path</a>
           <a href="/api/tasks" target="_blank" rel="noreferrer">Raw JSON</a>
         </nav>
       </header>

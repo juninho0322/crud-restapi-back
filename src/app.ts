@@ -89,7 +89,7 @@ app.get("/favicon.ico", (req: Request, res: Response) => {
 app.use("/api/tasks", taskRoutes);
 
 // React client routes should return the built index.html.
-app.get(["/", "/diagram.html", "/breakdown"], (req: Request, res: Response) => {
+app.get(["/", "/diagram.html", "/breakdown", "/study"], (req: Request, res: Response) => {
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(clientBuildDirectory, "index.html"));
 });
